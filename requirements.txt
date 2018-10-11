@@ -1,0 +1,17 @@
+archive verify program 'filter-gene-association.pl'
+download new verify program from 'ftp://ftp.geneontology.org/pub/go/software/utilities/filter-gene-association.pl'
+send email alert if there was a change to GOC VERIFY program
+
+download ftp://ftp.geneontology.org/pub/go/ontology/gene_ontology_edit.obo
+
+download ftp://ftp.geneontology.org/pub/go/doc/GO.xrf_abbs
+
+download RGD GO annots '/home/rgddata/pipelines/ftpFileExtracts/data/annotated_rgd_objects_by_ontology/rattus_genes_go'
+append '/home/rgddata/pipelines/GOAannotation/data/goa_rgd.txt'
+unique sort
+run go verify program
+send report from go verify rpogram by email
+fix conflicts by using report from GO verify program
+rerun it
+
+...

@@ -1,0 +1,36 @@
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+    <!-- HINT: comment out file name for particular species and module, to disable generation of this file -->
+
+	<bean id="manager" class="edu.mcw.rgd.dataload.gocAnnot.Manager">
+        <property name="version" value="GOC Annotation pipeline: version 2.3.2 (Oct 11, 2018)"/>
+        <property name="maxExceptions" value="1000" />
+        <property name="staffEMails">
+            <list>
+                <value>mtutaj@mcw.edu</value>
+            </list>
+        </property>
+	</bean>
+<!--
+    <bean id="gafGenerator" class="edu.mcw.rgd.dataload.gocAnnot.GeneAssociationFileGenerator">
+        <property name="gocVerifyProgram" value="ftp://ftp.geneontology.org/pub/go/software/utilities/filter-gene-association.pl" />
+        <property name="scriptArchiveDir" value="data/script_archive" /> Where downloaded scripts from GOC go
+
+        <property name="gocGeneOntFile" value="ftp://ftp.geneontology.org/pub/go/ontology/gene_ontology_edit.obo" />
+        <property name="ontologyDir" value="data/ontology" />
+
+        <property name="gocXrfAbbsFile" value="ftp://ftp.geneontology.org/pub/go/doc/GO.xrf_abbs" />
+        <property name="docDir" value="data/doc" />
+
+        <property name="extractDir" value="data/extract" />
+
+        <property name="goaGafFile" value="/home/rgddata/pipelines/GOAannotation/data/goa_rgd.txt" />
+    </bean>
+-->
+    <bean id="gocExtractor" class="edu.mcw.rgd.dataload.gocAnnot.GOCExtractor">
+    </bean>
+
+    <bean id="ndAnnotFixer" class="edu.mcw.rgd.dataload.gocAnnot.NDAnnotFixer">
+    </bean>
+</beans>

@@ -1,0 +1,27 @@
+ver 2.3.2, Oct 10, 2018
+  moved as is from subversion to github
+
+ver 2.3.1, Mar 13, 2018
+  fixed custom header generation
+
+ver 2.3, Mar 12, 2018
+  added module to drop PMIDs and other external db ids from lines with ISO annotations
+
+ver 2.2.1, Jan 6, 2017
+  generation of RGD only file, gene_associations.rgd.gz, and submit it to GOC
+  generation of all annotations file, both with gene and protein annotations, gene_protein_associations.rgd.gz
+
+
+ver 2.2, Dec 15, 2014
+  updated rgdcore; merged some of perl code into java app
+
+
+ver 2.1.1, Feb 17, 2014
+  fixConflicts module marks all lines containing text 'occurs_in(CL:0000002)' as conflicting and removes them from the
+  original file; reason (from gaf-validation-report.txt, produced during submission of our gaf file)
+  [The id 'CL:0000002' in the c16 annotation extension is an obsolete class, suggested replacements: CLO:0000019]
+
+
+ver 2.0, Dec 16, 2013
+  created fixConflicts module: lines reported by GOC verification script are removed from the original file
+  and stored in .conflicts file
