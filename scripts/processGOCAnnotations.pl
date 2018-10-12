@@ -324,6 +324,7 @@ if( $SUBMIT_TO_GITHUB ) {
 	
 	$cmd = "git add $ASSOC_FILE_GZ";
 	print "\n $cmd\n";
+    $retStr = `$cmd`;
     $retVal = $?;
     if ( $retVal != 0 ) {
         email_warning("failed git add", "ERROR: failed git add\n $retStr\n");
@@ -333,6 +334,7 @@ if( $SUBMIT_TO_GITHUB ) {
 
 	$cmd = "git commit -m \"weekly commit for $DATE_EXT\"";
 	print "\n $cmd\n";
+    $retStr = `$cmd`;
     $retVal = $?;
     if ( $retVal != 0 ) {
         email_warning("failed git commit", "ERROR: failed git commit\n $retStr\n");
@@ -342,6 +344,7 @@ if( $SUBMIT_TO_GITHUB ) {
 	
 	$cmd = "git push origin master";
 	print "\n $cmd\n";
+    $retStr = `$cmd`;
     $retVal = $?;
     if ( $retVal != 0 ) {
         email_warning("failed git push", "ERROR: failed git push\n $retStr\n");
