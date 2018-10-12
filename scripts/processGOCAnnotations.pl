@@ -16,10 +16,10 @@ $MAX_BACKUP_FILES=1000;
 
 $SERVER_NAME=`hostname -s | tr -d '\n' | tr '[a-z]' '[A-Z]'`;
 $STAFF_EMAIL='mtutaj@mcw.edu';
-if( $SERVER_NAME eq "KYLE") {
+if( $SERVER_NAME eq "REED") {
     $STAFF_EMAIL='rgd.developers@mcw.edu,jrsmith@mcw.edu,slaulederkind@mcw.edu';
 }
-$SUBMIT_TO_GOC=1;
+$SUBMIT_TO_GITHUB=1;
 
 # Should not have to change these
 $RUN_JAVA="java -Dspring.config=../properties/default_db.xml -Dlog4j.configuration=file:properties/log4j.properties -jar goc_annotation.jar ";
@@ -33,20 +33,20 @@ my ($mode) = @ARGV;
 $ASSOC_FILE="gene_association.rgd";
 if( $mode ne "-rgdOnly" ) {
     $ASSOC_FILE="gene_protein_association.rgd";
-    $SUBMIT_TO_GOC=0;
+    $SUBMIT_TO_GITHUB=0;
 }
+$ASSOC_FILE_GZ="${ASSOC_FILE}.gz";
 
 $DATA_DIR="${HOME}/data";
-$SVN_DIR="${HOME}/goc_svn/trunk/gene-associations/submission";
-$SVN_DIR_RELATIVE="${HOME}/goc_svn/trunk/gene-associations";
+$GITHUB_DIR="${HOME}/github/rgd-annotation-files"; # github staging dir
+$GITHUB_FILE="$GITHUB_DIR/$ASSOC_FILE";
+$GITHUB_FILE_GZ="$GITHUB_FILE.gz";
+
 $SCRIPT_ARCHIVE_DIR="$DATA_DIR/script_archive"; # Where downloaded scripts from GOC go
 $ONTOLOGY_DIR="$DATA_DIR/ontology";
 $DOC_DIR="$DATA_DIR/doc";
 $EXTRACT_DIR="$DATA_DIR/extract";
 $EXTRACT_REPORT="$EXTRACT_DIR/$ASSOC_FILE.report.$DATE_EXT";
-$SVN_FILE="$SVN_DIR/$ASSOC_FILE";
-$SVN_FILE_GZ="$SVN_FILE.gz";
-$SVN_FILE_GZ_RELATIVE="submission/$ASSOC_FILE.gz";
 $FTP_UPLOAD_DIR='/home/rgddata/data_release';
 
 # Remote GOC Scripts / data files
@@ -66,7 +66,6 @@ $GOC_UPLOAD_RECORDS="/home/rgddata/pipelines/GOAannotation/data/goa_rgd.txt";
 # From ftpFileExtracts pipeline, the GO rat annotations
 $RGD_GO_ANNOTS="/home/rgddata/pipelines/ftpFileExtracts/data/annotated_rgd_objects_by_ontology/rattus_genes_go";
 
-$SVN_PROGRAM="/usr/bin/svn";
 
 
 # Create needed directories
@@ -281,29 +280,27 @@ if ( $reportValue ne '' ) {
 
 ##########################################################################
 #
-# Check in extract file to GOC and copy to FTP directory on local machine
-# fordistribution to our public FTP site
+# Submit the final file to RGD GITHUB (GOC is pulling it from RGD GITHUB)
+# and copy to FTP directory on local machine for distribution to our public FTP site
 #
-# SVN questions : You can contact sysadmin@genome.stanford.edu if/when you have a 
-# systems question or problem.
 #
 
-if( $SUBMIT_TO_GOC ) {
+if( $SUBMIT_TO_GITHUB ) {
     # copy file to svn, gzip and transfer
-    if (! -d "$SVN_DIR" ) {
-        print "\nERROR: SVN directory does not exist , please create this first. See the README.txt file for the command to do this.\n \n";
-        email_warning("SVN directory does not exist", "ERROR: SVN directory does not exist, please create this first. See the README.txt file for the command to do this.\n \n");
+    if (! -d "$GITHUB_DIR" ) {
+        print "\nERROR: GITHUB directory does not exist!\n \n";
+        email_warning("GITHUB directory does not exist!", "ERROR: GITHUB directory does not exist!\n \n");
     }
 
     $old_archive_file = '';
-    chdir "$SVN_DIR";
-    if ( -e "$SVN_FILE_GZ" ) {
-        print "Removing old $SVN_FILE_GZ\n";
-        $old_archive_file = archive_file ( $SVN_FILE_GZ ) ;
+    chdir "$GITHUB_DIR";
+    if ( -e "$GITHUB_FILE_GZ" ) {
+        print "Removing old $GITHUB_FILE_GZ\n";
+        $old_archive_file = archive_file ( $GITHUB_FILE_GZ ) ;
     }
 
     chdir "$HOME";
-    my $cmd="$RUN_JAVA -dropPmidsForIso -inFile=$EXTRACT_DIR/$ASSOC_FILE.$DATE_EXT -outFile=$SVN_FILE_GZ -addCustomHeader";
+    my $cmd="$RUN_JAVA -dropPmidsForIso -inFile=$EXTRACT_DIR/$ASSOC_FILE.$DATE_EXT -outFile=$GITHUB_FILE_GZ -addCustomHeader";
     print "\n $cmd\n";
     $retStr = `$cmd`;
     $retVal = $?;
@@ -314,23 +311,43 @@ if( $SUBMIT_TO_GOC ) {
     print "\n$retStr\n";
 
     # Copy Compressed file to FTP directory for distribution to production
-    print  "cp $SVN_FILE_GZ $FTP_UPLOAD_DIR\n";
-    $retStr = copy ( "$SVN_FILE_GZ" , "$FTP_UPLOAD_DIR" );
+    print  "cp $GITHUB_FILE_GZ $FTP_UPLOAD_DIR\n";
+    $retStr = copy ( "$GITHUB_FILE_GZ" , "$FTP_UPLOAD_DIR" );
     $retVal = $?;
     if ( $retVal != 0 ) {
         email_warning("copy failed", "ERROR: Could not copy zipped goc file to ftp directory :\n $retStr\n");
         die( "\nERROR:  Could not copy zipped goc file to ftp directory  :\n $retStr\n");
     }
 
-    chdir "$SVN_DIR_RELATIVE";
-    print "\nCheckin file to svn ...\n";
-    print     "$SVN_PROGRAM commit -m \'Automated daily commit from RGD for $DATE_EXT \' $SVN_FILE_GZ_RELATIVE";
-    $retStr = `$SVN_PROGRAM commit -m 'Automated daily commit from RGD for $DATE_EXT' $SVN_FILE_GZ_RELATIVE  2>&1 `;
+    chdir "$GITHUB_DIR";
+    print "\nCheckin file to  GITHUB...\n";
+	
+	$cmd = "git add $ASSOC_FILE_GZ";
+	print "\n $cmd\n";
     $retVal = $?;
     if ( $retVal != 0 ) {
-        email_warning("SVN commit failed", "ERROR: SVN commit failed with message :\n $retStr\n");
-        die( "\nERROR: SVN commit failed with message :\n $retStr\n");
+        email_warning("failed git add", "ERROR: failed git add\n $retStr\n");
+        die( "\nERROR: failed git add:\n $retStr\n");
     }
+    print "\n$retStr\n";
+
+	$cmd = "git commit -m \"weekly commit for $DATE_EXT\"";
+	print "\n $cmd\n";
+    $retVal = $?;
+    if ( $retVal != 0 ) {
+        email_warning("failed git commit", "ERROR: failed git commit\n $retStr\n");
+        die( "\nERROR: failed git commit:\n $retStr\n");
+    }
+    print "\n$retStr\n";
+	
+	$cmd = "git push origin master";
+	print "\n $cmd\n";
+    $retVal = $?;
+    if ( $retVal != 0 ) {
+        email_warning("failed git push", "ERROR: failed git push\n $retStr\n");
+        die( "\nERROR: failed git push:\n $retStr\n");
+    }
+    print "\n$retStr\n";
 } else {
     chdir "$HOME";
     my $cmd="$RUN_JAVA -addCustomHeader -inFile=$EXTRACT_DIR/$ASSOC_FILE.$DATE_EXT -outFile=$EXTRACT_DIR/$ASSOC_FILE.gz";
@@ -404,7 +421,7 @@ sub email_file {
 	};
 	
 	my $msg = MIME::Lite->new(
-		From    => 'rgddata@kyle <RGD Data Account>',
+		From    => 'rgddata@reed <RGD Data Account>',
 		To      => $STAFF_EMAIL,
 		Subject => "[$SERVER_NAME] GOC Ontology pipeline Exception Report",
 		Type    => 'text/plain',
@@ -423,7 +440,7 @@ sub email_warning {
 	print "sending email of report\n";
 	
 	my $msg = MIME::Lite->new(
-		From    => 'rgddata@kyle <RGD Data Account>',
+		From    => 'rgddata@reed <RGD Data Account>',
 		To      => $STAFF_EMAIL,
 		Subject => "[$SERVER_NAME] GOC Ontology pipeline - $subject",
 		Type    => 'text/plain',
