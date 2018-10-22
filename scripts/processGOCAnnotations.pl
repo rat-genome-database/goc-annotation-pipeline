@@ -342,6 +342,46 @@ if( $SUBMIT_TO_GITHUB ) {
     }
     print "\n$retStr\n";
 	
+	$cmd = "eval \$(ssh-agent)";
+	print "\n $cmd\n";
+    $retStr = `$cmd`;
+    $retVal = $?;
+    if ( $retVal != 0 ) {
+        email_warning("failed eval ssh-agent", "ERROR: failed eval ssh-agent\n $retStr\n");
+        die( "\nERROR: failed eval ssh-agent:\n $retStr\n");
+    }
+    print "\n$retStr\n";
+
+	$cmd = "ssh-add /home/rgddata/.ssh/github";
+	print "\n $cmd\n";
+    $retStr = `$cmd`;
+    $retVal = $?;
+    if ( $retVal != 0 ) {
+        email_warning("failed ssh-add", "ERROR: failed ssh-add\n $retStr\n");
+        die( "\nERROR: failed ssh-add:\n $retStr\n");
+    }
+    print "\n$retStr\n";
+
+	$cmd = "git fetch";
+	print "\n $cmd\n";
+    $retStr = `$cmd`;
+    $retVal = $?;
+    if ( $retVal != 0 ) {
+        email_warning("failed git fetch", "ERROR: failed git fetch\n $retStr\n");
+        die( "\nERROR: failed git fetch:\n $retStr\n");
+    }
+    print "\n$retStr\n";
+
+	$cmd = "git pull";
+	print "\n $cmd\n";
+    $retStr = `$cmd`;
+    $retVal = $?;
+    if ( $retVal != 0 ) {
+        email_warning("failed git pull", "ERROR: failed git pull\n $retStr\n");
+        die( "\nERROR: failed git pull:\n $retStr\n");
+    }
+    print "\n$retStr\n";
+
 	$cmd = "git push origin master";
 	print "\n $cmd\n";
     $retStr = `$cmd`;
