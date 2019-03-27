@@ -2,7 +2,7 @@
 <beans>
     <bean id="manager" class="edu.mcw.rgd.Manager">
         <property name="version" value="--GOC Annotation pipeline -- ver. 1.0.0 -- Mar 27, 2019 --" />
-        <property name="pipelineName" value="GOC Annotation Pipeline" />
+        <property name="pipelineName" value="goc_annotation" />
         <property name="refRgdIdsForGoPipelines">
             <set>
                 <value>1303377</value><!-- olfactory genes one-time load-->

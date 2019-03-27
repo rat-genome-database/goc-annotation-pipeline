@@ -13,7 +13,7 @@ apply plugin: 'application'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 mainClassName = 'edu.mcw.rgd.Manager'
-String myAppName = 'GOCAnnotPipeline'
+String myAppName = 'goc_annotation'
 
 repositories {
     mavenCentral()
