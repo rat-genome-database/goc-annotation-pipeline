@@ -27,7 +27,8 @@ public class Manager {
     private DAO dao = new DAO();
     private String version;
     private String pipelineName;
-    private String outputFileDir;
+    private String outputFileRGD;
+    private String outputFileProtein;
     private String goaFile;
     private Set<Integer> refRgdIdsForGoPipelines;
     private List<String> catalyticTerms;
@@ -39,6 +40,16 @@ public class Manager {
                     "!{ The gene_protein_association.rgd file (available on the RGD ftp site) contains both RGD gene and UniProt protein IDs. }\n";
     SimpleDateFormat sdt = new SimpleDateFormat("yyyyMMdd");
     SimpleDateFormat headerDate = new SimpleDateFormat("yyyy/MM/dd");
+
+    private int notForCuration = 0;
+    private int notGene = 0;
+    private int ibaAnnot = 0;
+    private int obsolete = 0;
+    private int ipiAnnot = 0;
+    private int ipiInCatalytic = 0;
+    private int iepHep = 0;
+    private int ndAnnotations = 0;
+    private int icIpiIda = 0;
 
     Logger log = Logger.getLogger("core");
     Logger logSkipped = Logger.getLogger("skipped");
@@ -80,42 +91,74 @@ public class Manager {
 
     void handleGO(String species, int speciesTypeKey) throws Exception {
 
+
         log.info("Getting RGD annotations for species "+ species);
-        logSkipped.info("Skipped Annotations \n");
+        logSkipped.info("Summary Report \n");
         long startTime = System.currentTimeMillis();
-        String fileName = getOutputFileDir() + getFileName(speciesTypeKey);
+        String fileName = getOutputFileRGD();
+        String fileNameProtein = getOutputFileProtein();
         String headerLines = HEADER_COMMON_LINES
                 .replace("#SPECIES#", species)
                 .replace("#DATE#", headerDate.format(new Date()));
         FileWriter w = new FileWriter(fileName);
+        FileWriter wp = new FileWriter(fileNameProtein);
         w.append(headerLines);
+        wp.append(headerLines);
 
 
-        List<Annotation> annotations = dao.getAnnotationsBySpecies(speciesTypeKey, Aspect.BIOLOGICAL_PROCESS);
+        Set<Annotation> annotations = new TreeSet<>(new Comparator() {
+            @Override
+            public int compare(Object o1, Object o2) {
+                if(((Annotation)o1).equals((Annotation)o2))
+                    return 0;
+                else
+                    return 1;
+            }
+        });
+
+        annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey, Aspect.BIOLOGICAL_PROCESS));
         annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey,Aspect.MOLECULAR_FUNCTION));
         annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey,Aspect.CELLULAR_COMPONENT));
+        logSkipped.info("Total Number of GO Annotations in RGD: " + annotations.size());
+
         catalyticTerms = dao.getAllActiveTermDescandantAccIds("GO:0003824");
         obsoleteTerms = dao.getObsoleteTermsForGO();
+
+
         Set<GoAnnotation> filteredList = new TreeSet<>(new Comparator() {
             @Override
             public int compare(Object o1, Object o2) {
                 if(((GoAnnotation)o1).equals((GoAnnotation)o2))
                     return 0;
                 else
-                    return ((GoAnnotation)o1).getTermAcc().compareTo(((GoAnnotation)o2).getTermAcc());
+                    return 1;
             }
         });
-        annotations.parallelStream().forEach( annotation -> {
+
+
+        for(Annotation annotation: annotations ) {
             try {
                 GoAnnotation result = handleAnnotation(annotation);
                 if(result != null) {
                     result.setTaxon("taxon:" + SpeciesType.getTaxonomicId(speciesTypeKey));
                     filteredList.add(result);
+                    writeLine(w,result);
                 }
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }
-        });
+        }
+
+        logSkipped.info("Total Number of Annotations Sent to GO from RGD: " + filteredList.size());
+        logSkipped.info("Obsolete Annotations: " + obsolete);
+        logSkipped.info("Not gene Annotations: " + notGene);
+        logSkipped.info("NotForCuration Annotations: " + notForCuration);
+        logSkipped.info("IEP and HEP Annotations: " + iepHep);
+        logSkipped.info("No Data (ND) evidence code Annotations: " + ndAnnotations);
+        logSkipped.info("IPI Annotations to Catalytic Terms: " + ipiInCatalytic);
+        logSkipped.info("IC,IPI,IDA Annotations violating WITH field rule: " + icIpiIda);
+        logSkipped.info("IBA annotations from other sources: "+ ibaAnnot);
+        logSkipped.info("IPI annotations to root terms with null WITH field: " + ipiAnnot);
 
 
         FileReader fr=new FileReader(getGoaFile());
@@ -148,7 +191,7 @@ public class Manager {
         br.close();
 
         for(GoAnnotation g:filteredList){
-            writeLine(w,g);
+            writeLine(wp,g);
         }
         log.info("END:  time elapsed: " + Utils.formatElapsedTime(startTime, System.currentTimeMillis()));
 
@@ -167,20 +210,26 @@ public class Manager {
                 goAnnotation.setObjectType("gene");
                 break;
             default:
-                log.info("object type " + objectKey + " for annot key=" + a.getKey() + "is not gene");
-                logSkipped.info(a.getKey()+ " to term"+ a.getTermAcc() + " is not annotated to a gene.");
+                log.info(a.getKey()+ " to term"+ a.getTermAcc() + " is not annotated to a gene.");
+                notGene++;
                 return null;
         }
 
 
 
         //GORules:
-
         //GO consortium rule GO:0000026
+        if(a.getEvidence().equals("IBA") && !a.getDataSrc().equals("PAINT")) {
+            log.info(a.getTermAcc() +" is an IBA annotation: Annotation skipped");
+            ibaAnnot++;
+            return null;
+        }
+
+        //GO consortium rule GO:0000020
         //Check for obsolete terms and filter them
         if(obsoleteTerms.contains(a.getTermAcc())){
             log.info(a.getTermAcc() +" is an Obsolete Term: Annotation skipped");
-            logSkipped.info(a.getTermAcc() +" is an Obsolete Term: Annotation skipped");
+            obsolete++;
             return null;
         }
 
@@ -224,29 +273,32 @@ public class Manager {
         //"binding" annotation -- GO:0005488 -- must have evidence 'IPI' and non-null WITH field
         // "protein binding" annotation -- GO:0005515 - no ISS or ISS-related annotations (if block allows only IPI annotations)
         if( (a.getTermAcc().equals("GO:0005515") || a.getTermAcc().equals("GO:0005488"))&& (!a.getEvidence().equals("IPI") || goAnnotation.getWithInfo().length()==0 )) {
-            logSkipped.info(a.getTermAcc() +" is an "+a.getEvidence()+ " Annotation. Only IPI annotation with a non-null WITH field are allowed.");
+            ipiAnnot++;
+            log.info(a.getTermAcc() +" is an "+a.getEvidence()+ " Annotation. Only IPI annotation with a non-null WITH field are allowed.");
             return null;
         }
 
         // GO consortium rule GO:0000006
         //IEP and HEP annotations are restricted to terms from Biological Process ontology
         if((a.getEvidence().equals("IEP") || a.getEvidence().equals("HEP")) && !a.getAspect().equals("P")) {
-            logSkipped.info(a.getTermAcc() +" is an "+a.getEvidence()+ "annotation. It is restricted to Biological Process ontology" );
+            log.info(a.getTermAcc() +" is an "+a.getEvidence()+ "annotation. It is restricted to Biological Process ontology" );
+            iepHep++;
             return null;
         }
 
         // GO consortium rule GO:0000007
         //IPI annotations should not be used with catalytic molecular function terms
         if(a.getEvidence().equals("IPI")  && catalyticTerms.contains(a.getTermAcc())) {
-            logSkipped.info(a.getTermAcc() +" is an "+a.getEvidence()+ "annotation. They should not be used with catalytic molecular terms." );
+            log.info(a.getTermAcc() +" is an "+a.getEvidence()+ "annotation. They should not be used with catalytic molecular terms." );
+            ipiInCatalytic++;
             return null;
         }
 
         //GO consortium rule GO:0000008
         //Check for Not4Curation Go terms
         if( !dao.isForCuration(a.getTermAcc()) ) {
+            notForCuration++;
             log.info(" term "+a.getTerm()+" is Not4Curation! annotation skipped" );
-            logSkipped.info(a.getTermAcc() +" is Not for curation: Annotation skipped");
             return null;
         }
 
@@ -259,14 +311,16 @@ public class Manager {
         // CASE 1: evidence.code = 'ND' AND term.acc NOT IN ( 'GO:0005575', 'GO:0003674', 'GO:0008150' )
         if( a.getEvidence().equals("ND") && a.getTerm().startsWith("GO:")
                 && !(a.getTerm().equals("GO:0005575") || a.getTerm().equals("GO:0003674") || a.getTerm().equals("GO:0008150")) ) {
-            logSkipped.info(a.getTermAcc() +" is an ND annotation. Fails rule GO:0000011");
+            log.info(a.getTermAcc() +" is an ND annotation. Fails rule GO:0000011");
+            ndAnnotations++;
             return null;
         }
 
         // CASE 2: evidence.code != 'ND' AND term.acc IN ( 'GO:0005575', 'GO:0003674', 'GO:0008150' )
         if( !a.getEvidence().equals("ND")
                 && (a.getTerm().equals("GO:0005575") || a.getTerm().equals("GO:0003674") || a.getTerm().equals("GO:0008150")) ) {
-            logSkipped.info(a.getTermAcc() +" is not an ND annotation.Fails rule GO:0000011");
+            log.info(a.getTermAcc() +" is not an ND annotation.Fails rule GO:0000011");
+            ndAnnotations++;
             return null;
         }
 
@@ -284,7 +338,8 @@ public class Manager {
         // IC and IPI annotations require a WITH field and IDA must not have a WITH field
         if( ((a.getEvidence().equals("IC") || (a.getEvidence().equals("IPI"))) && goAnnotation.withInfo.length()==0 ) ||
                 (a.getEvidence().equals("IDA") && goAnnotation.getWithInfo().length()!=0 ) ) {
-            logSkipped.info("Annotation to term "+a.getTermAcc() + " failed rule: IC and IPI annotations require a WITH field and IDA must not have a WITH field ");
+            log.info("Annotation to term "+a.getTermAcc() + " failed rule: IC and IPI annotations require a WITH field and IDA must not have a WITH field ");
+            icIpiIda++;
             return null;
         }
 
@@ -305,6 +360,12 @@ public class Manager {
             goAnnotation.setCreatedDate(formatDate(a.getCreatedDate()));
         }
 
+        //DB Abbreviation Check
+        if(a.getDataSrc().equalsIgnoreCase("WormBase"))
+            goAnnotation.setDataSrc("WB");
+        else
+            goAnnotation.setDataSrc(a.getDataSrc());
+
         goAnnotation.setObjectId(a.getAnnotatedObjectRgdId().toString());
         String references = mergeWithXrefSource(goAnnotation.getReferences(),a.getXrefSource());
         goAnnotation.setReferences(references);
@@ -313,27 +374,10 @@ public class Manager {
         goAnnotation.setObjectName(a.getObjectName());
         goAnnotation.setMeshOrOmimId("");
         goAnnotation.setTermAcc(a.getTermAcc());
-        goAnnotation.setDataSrc(a.getDataSrc());
-
-        log.info("END:  time elapsed: " + Utils.formatElapsedTime(startTime, System.currentTimeMillis()));
-
 
         return goAnnotation;
     }
 
-
-    private String getFileName(int speciesTypeKey) {
-
-        String fileName = "";
-        String taxName = SpeciesType.getTaxonomicName(speciesTypeKey).toLowerCase();
-        int spacePos = taxName.indexOf(' ');
-        if( spacePos>0 )
-            fileName = taxName.substring(0, spacePos)+"_" + RgdId.getObjectTypeName(RgdId.OBJECT_KEY_GENES).toLowerCase() + "s_go";
-        else
-            fileName = taxName + RgdId.getObjectTypeName(RgdId.OBJECT_KEY_GENES).toLowerCase() + "s_go";
-
-        return fileName;
-    }
     private String mergeWithXrefSource(String references, String xrefSource) {
 
         if( Utils.isStringEmpty(xrefSource) ) {
@@ -417,6 +461,10 @@ public class Manager {
         return refRgdIdsForGoPipelines;
     }
 
+    public  void setRefRgdIdsForGoPipelines(Set<Integer> refRgdIdsForGoPipelines) {
+        this.refRgdIdsForGoPipelines = refRgdIdsForGoPipelines;
+    }
+
     public String getGoaFile() {
         return goaFile;
     }
@@ -425,16 +473,20 @@ public class Manager {
         this.goaFile = goaFile;
     }
 
-    public String getOutputFileDir() {
-        return outputFileDir;
+    public String getOutputFileRGD() {
+        return outputFileRGD;
     }
 
-    public void setOutputFileDir(String outputFileDir) {
-        this.outputFileDir = outputFileDir;
+    public void setOutputFileRGD(String outputFileRGD) {
+        this.outputFileRGD = outputFileRGD;
     }
 
-    public  void setRefRgdIdsForGoPipelines(Set<Integer> refRgdIdsForGoPipelines) {
-        this.refRgdIdsForGoPipelines = refRgdIdsForGoPipelines;
+    public String getOutputFileProtein() {
+        return outputFileProtein;
     }
- }
+
+    public void setOutputFileProtein(String outputFileProtein) {
+        this.outputFileProtein = outputFileProtein;
+    }
+}
 

@@ -12,6 +12,7 @@
             </set>
         </property>
         <property name="goaFile" value="data/goa_rgd.txt" />
-        <property name="outputFileDir" value="data/" />
+        <property name="outputFileRGD" value="data/gene_association.rgd" />
+        <property name="outputFileProtein" value="data/gene_protein_association.rgd" />
     </bean>
 </beans>
