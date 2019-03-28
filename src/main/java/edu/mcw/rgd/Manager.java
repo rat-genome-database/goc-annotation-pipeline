@@ -148,18 +148,18 @@ public class Manager {
             }
         }
 
-        logSkipped.info("Summary Report \n " +
-                        "Total Number of GO Annotations in RGD: " + annotations.size() + "\n" +
-                        "Total Number of Annotations Sent to GO from RGD: " + filteredList.size() + "\n" +
-                        "Obsolete Annotations: " + obsolete + "\n" +
-                        "Not gene Annotations: " + notGene + "\n" +
-                        "NotForCuration Annotations: " + notForCuration + "\n" +
-                        "IEP and HEP Annotations: " + iepHep + "\n" +
-                        "No Data (ND) evidence code Annotations: " + ndAnnotations + "\n" +
-                        "IPI Annotations to Catalytic Terms: " + ipiInCatalytic + "\n" +
-                        "IC,IPI,IDA Annotations violating WITH field rule: " + icIpiIda + "\n" +
-                        "IBA annotations from other sources: "+ ibaAnnot + "\n" +
-                        "IPI annotations to root terms with null WITH field: " + ipiAnnot + "\n" );
+        logSkipped.info(" Summary Report ");
+        logSkipped.info(" Total Number of GO Annotations in RGD: " + annotations.size());
+        logSkipped.info(" Total Number of Annotations Sent to GO from RGD: " + filteredList.size() );
+        logSkipped.info(" Obsolete Annotations: " + obsolete );
+        logSkipped.info(" Not gene Annotations: " + notGene );
+        logSkipped.info(" NotForCuration Annotations: " + notForCuration );
+        logSkipped.info(" IEP and HEP Annotations: " + iepHep );
+        logSkipped.info(" No Data (ND) evidence code Annotations: " + ndAnnotations );
+        logSkipped.info(" IPI Annotations to Catalytic Terms: " + ipiInCatalytic );
+        logSkipped.info(" IC,IPI,IDA Annotations violating WITH field rule: " + icIpiIda  );
+        logSkipped.info(" IBA annotations from other sources: "+ ibaAnnot );
+        logSkipped.info(" IPI annotations to root terms with null WITH field: " + ipiAnnot  );
 
 
         FileReader fr=new FileReader(getGoaFile());
