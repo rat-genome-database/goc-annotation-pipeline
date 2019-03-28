@@ -149,12 +149,12 @@ public class Manager {
         }
 
         logSkipped.info(" Summary Report \n");
-        logSkipped.info(" Total Number of GO Annotations in RGD: " + annotations.size());
-        logSkipped.info(" Total Number of Annotations Sent to GO from RGD: " + filteredList.size() );
-        logSkipped.info(" Obsolete Annotations: " + obsolete );
-        logSkipped.info(" Not gene Annotations: " + notGene );
+        logSkipped.info(" Total Number of GO Annotations in RGD: " + annotations.size() + "\n");
+        logSkipped.info(" Total Number of Annotations Sent to GO from RGD: " + filteredList.size() + "\n" );
+        logSkipped.info(" Annotations to Obsolete terms: " + obsolete );
         logSkipped.info(" NotForCuration Annotations: " + notForCuration );
-        logSkipped.info(" IEP and HEP Annotations: " + iepHep );
+        logSkipped.info(" Not gene Annotations: " + notGene );
+        logSkipped.info(" IEP and HEP Annotations to MF and CC Ontology: " + iepHep );
         logSkipped.info(" No Data (ND) evidence code Annotations: " + ndAnnotations );
         logSkipped.info(" IPI Annotations to Catalytic Terms: " + ipiInCatalytic );
         logSkipped.info(" IC,IPI,IDA Annotations violating WITH field rule: " + icIpiIda  );
