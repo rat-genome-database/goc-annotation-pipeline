@@ -93,7 +93,7 @@ public class Manager {
 
 
         log.info("Getting RGD annotations for species "+ species);
-        logSkipped.info("Summary Report \n");
+
         long startTime = System.currentTimeMillis();
         String fileName = getOutputFileRGD();
         String fileNameProtein = getOutputFileProtein();
@@ -119,7 +119,6 @@ public class Manager {
         annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey, Aspect.BIOLOGICAL_PROCESS));
         annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey,Aspect.MOLECULAR_FUNCTION));
         annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey,Aspect.CELLULAR_COMPONENT));
-        logSkipped.info("Total Number of GO Annotations in RGD: " + annotations.size());
 
         catalyticTerms = dao.getAllActiveTermDescandantAccIds("GO:0003824");
         obsoleteTerms = dao.getObsoleteTermsForGO();
@@ -149,16 +148,18 @@ public class Manager {
             }
         }
 
-        logSkipped.info("Total Number of Annotations Sent to GO from RGD: " + filteredList.size());
-        logSkipped.info("Obsolete Annotations: " + obsolete);
-        logSkipped.info("Not gene Annotations: " + notGene);
-        logSkipped.info("NotForCuration Annotations: " + notForCuration);
-        logSkipped.info("IEP and HEP Annotations: " + iepHep);
-        logSkipped.info("No Data (ND) evidence code Annotations: " + ndAnnotations);
-        logSkipped.info("IPI Annotations to Catalytic Terms: " + ipiInCatalytic);
-        logSkipped.info("IC,IPI,IDA Annotations violating WITH field rule: " + icIpiIda);
-        logSkipped.info("IBA annotations from other sources: "+ ibaAnnot);
-        logSkipped.info("IPI annotations to root terms with null WITH field: " + ipiAnnot);
+        logSkipped.info("Summary Report \n " +
+                        "Total Number of GO Annotations in RGD: " + annotations.size() + "\n" +
+                        "Total Number of Annotations Sent to GO from RGD: " + filteredList.size() + "\n" +
+                        "Obsolete Annotations: " + obsolete + "\n" +
+                        "Not gene Annotations: " + notGene + "\n" +
+                        "NotForCuration Annotations: " + notForCuration + "\n" +
+                        "IEP and HEP Annotations: " + iepHep + "\n" +
+                        "No Data (ND) evidence code Annotations: " + ndAnnotations + "\n" +
+                        "IPI Annotations to Catalytic Terms: " + ipiInCatalytic + "\n" +
+                        "IC,IPI,IDA Annotations violating WITH field rule: " + icIpiIda + "\n" +
+                        "IBA annotations from other sources: "+ ibaAnnot + "\n" +
+                        "IPI annotations to root terms with null WITH field: " + ipiAnnot + "\n" );
 
 
         FileReader fr=new FileReader(getGoaFile());

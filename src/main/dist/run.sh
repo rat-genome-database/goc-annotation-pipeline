@@ -21,4 +21,4 @@ java -Dspring.config=$APPDIR/../properties/default_db.xml \
     -Dlog4j.configuration=file://$APPDIR/properties/log4j.properties \
     -jar lib/${APPNAME}.jar "$@"
 
-mailx -s "[$SERVER]GOC Ontology pipeline - Summary Report " $EMAILLIST<skipped.log
+mailx -s "[$SERVER]GOC Ontology pipeline - Summary Report " $EMAILLIST<logs/skipped.log
