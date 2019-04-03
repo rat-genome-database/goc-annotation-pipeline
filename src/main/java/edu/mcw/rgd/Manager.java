@@ -375,7 +375,8 @@ public class Manager {
         goAnnotation.setObjectName(a.getObjectName());
         goAnnotation.setMeshOrOmimId("");
         goAnnotation.setTermAcc(a.getTermAcc());
-
+        goAnnotation.setEvidence(a.getEvidence());
+        goAnnotation.setQualifier(a.getQualifier());
         return goAnnotation;
     }
 
