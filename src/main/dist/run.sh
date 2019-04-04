@@ -18,6 +18,7 @@ GOAFILE=/home/rgddata/pipelines/GOAannotation/data/goa_rgd.txt
 FTP_UPLOAD_DIR=/home/rgddata/data_release
 DATE_EXT=`date +%y%m%d`
 FILENAME=gene_association.rgd
+PROTEIN_FILE=gene_protein_association.rgd
 FILE_GZ=$FILENAME.gz
 
 echo "=== Copy Rat annotations file from GO to data directory  ==="
@@ -55,3 +56,4 @@ git push origin master
 
 echo "=== Copy the file to FTP directory  ==="
 cp $FILE.gz $FTP_UPLOAD_DIR
+cp $PROTEIN_FILE.gz $FTP_UPLOAD_DIR
