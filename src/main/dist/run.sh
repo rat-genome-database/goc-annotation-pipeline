@@ -51,7 +51,7 @@ git fetch
 git pull
 
 echo "=== Pushing the new file to github ==="
-git push origin dev
+git push origin master
 
 echo "=== Copy the file to FTP directory  ==="
 cp $FILE.gz $FTP_UPLOAD_DIR
