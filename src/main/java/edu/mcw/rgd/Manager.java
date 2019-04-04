@@ -35,9 +35,13 @@ public class Manager {
     private List<String> obsoleteTerms;
     static private Map<Integer, String> pmidMap;
     final String HEADER_COMMON_LINES =
-                    "!gaf-version: 2.1\n"+
-                    "!{ As of December 2016, the gene_association.rgd file only contains 'RGD' in column 1 and RGD gene identifiers in column 2. }\n"+
-                    "!{ The gene_protein_association.rgd file (available on the RGD ftp site) contains both RGD gene and UniProt protein IDs. }\n";
+                    "!gaf-version: 2.1\n" +
+                            "!{ The gene_association.rgd file is available at the GO Consortium website (http://www.geneontology.org/page/download-go-annotations) and on RGD's FTP site (ftp://ftp.rgd.mcw.edu/pub/data_release/). The file and its contents follow the specifications laid out by the Consortium, currently GO Annotation File (GAF) Format 2.1 located at http://www.geneontology.org/page/go-annotation-file-gaf-format-21.  This requires that some details available for certain annotations on the RGD website and/or in other annotations files found on the RGD FTP site must be excluded from this file in order to conform to the GOC guidelines and to correspond to GAF files from other groups. }\n" +
+                            "!{ As of December 2016, the gene_association.rgd file only contains 'RGD' in column 1 and RGD gene identifiers in column 2. }\n" +
+                            "!{ As of March 2018, the gene_association.rgd file no longer includes identifiers for the original references (see below) for ISO annotations in column 6. For ISO annotations, entries in column 6 will be limited to RGD:1624291, RGD's internal reference which explains the assignment of GO ISO annotations to rat genes.  }\n" +
+                            "!{ The gene_protein_association.rgd file (available on the RGD ftp site at ftp://ftp.rgd.mcw.edu/pub/data_release/) contains both RGD gene and UniProt protein IDs in columns 1/2. The gene_protein_association.rgd file also includes original reference IDs for rat ISO annotations, as well as the ID for RGD's internal reference which explains the assignment of GO ISO annotations to rat genes.  \"Original reference\" refers to the identifier(s), such as PMIDs and/or other database IDs for the references used to assign GO annotations to genes or proteins in other species which are then inferred to rat genes by orthology. }\n" +
+                            "!{ Additional annotation files can be found on RGD's ftp site in the ftp://ftp.rgd.mcw.edu/pub/data_release/annotated_rgd_objects_by_ontology/ directory and its \"with_terms\" subdirectory (ftp://ftp.rgd.mcw.edu/pub/data_release/annotated_rgd_objects_by_ontology/with_terms/). The annotated_rgd_objects_by_ontology directory contains GAF-formatted files for all of RGD's ontology annotations, that is, annotations for all of the ontologies that RGD uses for all annotated objects from all of the species in RGD.  Files in the \"with_terms\" subdirectory contain the same data with the addition of ontology terms for human-readability as well as additional information in the form of curator notes. }\n" +
+                            "!{ For additional information about the file formats for files in the annotated_rgd_objects_by_ontology/ directory and it's \"with_terms\" subdirectory see the README files at ftp://ftp.rgd.mcw.edu/pub/data_release/annotated_rgd_objects_by_ontology/README and ftp://ftp.rgd.mcw.edu/pub/data_release/annotated_rgd_objects_by_ontology/with_terms/WITHTERMS_README. }\n";
     SimpleDateFormat sdt = new SimpleDateFormat("yyyyMMdd");
     SimpleDateFormat headerDate = new SimpleDateFormat("yyyy/MM/dd");
 
@@ -63,8 +67,8 @@ public class Manager {
         try {
             manager.run();
         } catch (Exception e) {
-            manager.log.error(e);
-            throw e;
+           e.printStackTrace();
+           System.exit(1);
         }
     }
 
