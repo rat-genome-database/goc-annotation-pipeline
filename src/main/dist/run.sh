@@ -16,10 +16,16 @@ APPDIR=/home/rgddata/pipelines/$APPNAME
 APPDATADIR=$APPDIR/data
 GOAFILE=/home/rgddata/pipelines/GOAannotation/data/goa_rgd.txt
 FTP_UPLOAD_DIR=/home/rgddata/data_release
+DATE_EXT=`date +%y%m%d`
+FILENAME=gene_association.rgd
+FILE_GZ=$FILENAME.gz
 
 echo "=== Copy Rat annotations file from GO to data directory  ==="
 cp $GOAFILE $APPDATADIR
 cd $APPDIR
+
+echo "=== Archive the old file in data directory  ==="
+cp data/$FILENAME data/$FILENAME.$DATE_EXT
 
 java -Dspring.config=$APPDIR/../properties/default_db.xml \
     -Dlog4j.configuration=file://$APPDIR/properties/log4j.properties \
@@ -33,17 +39,9 @@ mailx -s "[$SERVER]GOC Ontology pipeline - Summary Report " $EMAILLIST<logs/skip
 # Submit the final file to RGD GITHUB (GOC is pulling it from RGD GITHUB)
 #
 #
-GITHUBDIR=$APPDATADIR/github
-FILENAME=gene_association_rgd
-GITHUB_FILE=$GITHUBDIR/FILENAME
-GITHUB_FILE_GZ=$GITHUB_FILE.gz
-
-echo "=== Copy the file to github directory  ==="
-cp $FILENAME /github
-cd $GITHUB_DIR
 
 echo "=== Checkin the file to github ==="
-git add $GITHUB_FILE.gz
+git add $FILE.gz
 
 echo "=== Committing the file to github ==="
 git commit -m \"weekly commit for $DATE_EXT\"
@@ -56,4 +54,4 @@ echo "=== Pushing the new file to github ==="
 git push origin dev
 
 echo "=== Copy the file to FTP directory  ==="
-cp $GITHUB_FILE_GZ $FTP_UPLOAD_DIR
+cp $FILE.gz $FTP_UPLOAD_DIR
