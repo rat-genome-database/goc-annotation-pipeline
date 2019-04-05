@@ -20,19 +20,24 @@ DATE_EXT=`date +%y%m%d`
 FILENAME=gene_association.rgd
 PROTEIN_FILE=gene_protein_association.rgd
 FILE_GZ=$FILENAME.gz
+GITHUBDIR=github/rgd-annotation-files
 
 echo "=== Copy Rat annotations file from GO to data directory  ==="
 cp $GOAFILE $APPDATADIR
-cd $APPDIR
 
 echo "=== Archive the old file in data directory  ==="
-cp data/$FILENAME data/$FILENAME.$DATE_EXT
+cp $APPDATADIR/$FILENAME $APPDATADIR/$FILENAME.$DATE_EXT
+cp $APPDATADIR/$PROTEIN_FILE $APPDATADIR/$PROTEIN_FILE.$DATE_EXT
+
+cd $APPDIR
+
+
 
 java -Dspring.config=$APPDIR/../properties/default_db.xml \
     -Dlog4j.configuration=file://$APPDIR/properties/log4j.properties \
     -jar lib/${APPNAME}.jar "$@"
 
-mailx -s "[$SERVER]GOC Ontology pipeline - Summary Report " $EMAILLIST<logs/skipped.log
+mailx -s "[$SERVER]GOC Ontology pipeline - Sum4mary Report " $EMAILLIST<logs/skipped.log
 
 
 ##########################################################################
@@ -41,11 +46,20 @@ mailx -s "[$SERVER]GOC Ontology pipeline - Summary Report " $EMAILLIST<logs/skip
 #
 #
 
+echo "=== Copy new file to github directory ==="
+cp data/$FILENAME $GITHUBDIR
+cp data/$PROTEIN_FILE $GITHUBDIR
+
+cd $GITHUBDIR
+echo "=== Compress new file in github directory ==="
+gzip $FILENAME
+gzip $PROTEIN_FILE
+
 echo "=== Checkin the file to github ==="
 git add $FILE.gz
 
 echo "=== Committing the file to github ==="
-git commit -m \"weekly commit for $DATE_EXT\"
+git commit -m "weekly commit for $DATE_EXT"
 
 echo "=== Fetch and pull the file from github ==="
 git fetch
