@@ -417,11 +417,7 @@ public class Manager {
 
     void writeLine(BufferedWriter writer, GoAnnotation rec) throws Exception{
 
-        if(rec.getTermAcc().equalsIgnoreCase("GO:0005794") && rec.getObjectId().equals(1589149)) {
-            log.info("checking");
-            log.info(rec.getReferences());
-            log.info(rec.getEvidence());
-        }
+      
         // column contents must comply with GAF 2.0 format
         writer.append("RGD")
                 .append('\t')
