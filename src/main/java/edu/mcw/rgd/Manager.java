@@ -97,7 +97,7 @@ public class Manager {
 
 
         log.info("Getting RGD annotations for species "+ species);
-
+        BufferedWriter bw;
         long startTime = System.currentTimeMillis();
         String fileName = getOutputFileRGD();
         String fileNameProtein = getOutputFileProtein();
@@ -106,8 +106,9 @@ public class Manager {
                 .replace("#DATE#", headerDate.format(new Date()));
         FileWriter w = new FileWriter(fileName);
         FileWriter wp = new FileWriter(fileNameProtein);
-        w.append(headerLines);
-        wp.append(headerLines);
+        bw = new BufferedWriter(w);
+        bw.write(headerLines);
+
 
 
         Set<Annotation> annotations = new TreeSet<>(new Comparator() {
@@ -145,13 +146,13 @@ public class Manager {
                 if(result != null) {
                     result.setTaxon("taxon:" + SpeciesType.getTaxonomicId(speciesTypeKey));
                     filteredList.add(result);
-                    writeLine(w,result);
+                    writeLine(bw,result);
                 }
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }
         }
-
+        bw.close();
         logSkipped.info(" Summary Report \n");
         logSkipped.info(" Total Number of GO Annotations in RGD: " + annotations.size() + "\n");
         logSkipped.info(" Total Number of Annotations Sent to GO from RGD: " + filteredList.size() + "\n" );
@@ -194,10 +195,13 @@ public class Manager {
             filteredList.add(goAnnotation);
         }
         br.close();
-
+        bw = new BufferedWriter(wp);
+        bw.write(headerLines);
         for(GoAnnotation g:filteredList){
-            writeLine(wp,g);
+            writeLine(bw,g);
         }
+
+        bw.close();
         log.info("END:  time elapsed: " + Utils.formatElapsedTime(startTime, System.currentTimeMillis()));
 
 
@@ -411,8 +415,9 @@ public class Manager {
         return dt != null ? sdt.format(dt) : "";
     }
 
-    void writeLine(FileWriter writer, GoAnnotation rec) throws Exception{
+    void writeLine(BufferedWriter writer, GoAnnotation rec) throws Exception{
 
+      
         // column contents must comply with GAF 2.0 format
         writer.append("RGD")
                 .append('\t')
