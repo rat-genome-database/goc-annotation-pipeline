@@ -121,7 +121,7 @@ public class Manager {
             }
         });
 
-        annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey, Aspect.BIOLOGICAL_PROCESS));
+       annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey, Aspect.BIOLOGICAL_PROCESS));
         annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey,Aspect.MOLECULAR_FUNCTION));
         annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey,Aspect.CELLULAR_COMPONENT));
 
@@ -140,7 +140,7 @@ public class Manager {
         });
 
 
-        for(Annotation annotation: annotations ) {
+     for(Annotation annotation: annotations ) {
             try {
                 GoAnnotation result = handleAnnotation(annotation);
                 if(result != null) {
@@ -153,6 +153,7 @@ public class Manager {
             }
         }
         bw.close();
+        w.close();
         logSkipped.info(" Summary Report \n");
         logSkipped.info(" Total Number of GO Annotations in RGD: " + annotations.size() + "\n");
         logSkipped.info(" Total Number of Annotations Sent to GO from RGD: " + filteredList.size() + "\n" );
@@ -169,9 +170,11 @@ public class Manager {
 
         FileReader fr=new FileReader(getGoaFile());
         BufferedReader br=new BufferedReader(fr);
-        while(br.readLine() != null){
+        String line;
+        while( null != (line = br.readLine())){
+
             GoAnnotation goAnnotation = new GoAnnotation();
-            String tokens[] = br.readLine().split("[\\t]", -1);
+            String tokens[] = line.split("[\\t]", -1);
             if( tokens.length!=17 ) {
                 continue;
             }
@@ -192,7 +195,7 @@ public class Manager {
             goAnnotation.setAnnotExtension(tokens[15]);
             goAnnotation.setGeneProductId(tokens[16]);
 
-            filteredList.add(goAnnotation);
+           filteredList.add(goAnnotation);
         }
         br.close();
         bw = new BufferedWriter(wp);
@@ -202,6 +205,7 @@ public class Manager {
         }
 
         bw.close();
+        wp.close();
         log.info("END:  time elapsed: " + Utils.formatElapsedTime(startTime, System.currentTimeMillis()));
 
 
@@ -417,7 +421,7 @@ public class Manager {
 
     void writeLine(BufferedWriter writer, GoAnnotation rec) throws Exception{
 
-      
+
         // column contents must comply with GAF 2.0 format
         writer.append("RGD")
                 .append('\t')
