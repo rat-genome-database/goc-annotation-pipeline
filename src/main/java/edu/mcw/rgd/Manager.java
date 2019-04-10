@@ -277,10 +277,16 @@ public class Manager {
         // "protein binding" annotation -- GO:0005515 -- must have evidence 'IPI' and non-null WITH field
         //"binding" annotation -- GO:0005488 -- must have evidence 'IPI' and non-null WITH field
         // "protein binding" annotation -- GO:0005515 - no ISS or ISS-related annotations (if block allows only IPI annotations)
-        if( (a.getTermAcc().equals("GO:0005515") || a.getTermAcc().equals("GO:0005488"))&& (!a.getEvidence().equals("IPI") || goAnnotation.getWithInfo().length()==0 )) {
-            ipiAnnot++;
+        if( (a.getTermAcc().equals("GO:0005515") || a.getTermAcc().equals("GO:0005488"))) {
+               if(a.getEvidence().equals("IPI")) {
+                   if (goAnnotation.getWithInfo().length() == 0) {
+                       ipiAnnot++;
+                       return null;
+                   }
+               } else { ipiAnnot++;
+                        return null;}
             log.info(a.getTermAcc() +" is an "+a.getEvidence()+ " Annotation. Only IPI annotation with a non-null WITH field are allowed.");
-            return null;
+
         }
 
         // GO consortium rule GO:0000006
