@@ -56,7 +56,7 @@ gzip $FILENAME
 gzip $PROTEIN_FILE
 
 echo "=== Checkin the file to github ==="
-git add $FILE.gz
+git add $FILE_GZ
 
 echo "=== Committing the file to github ==="
 git commit -m "weekly commit for $DATE_EXT"
@@ -69,5 +69,5 @@ echo "=== Pushing the new file to github ==="
 git push origin master
 
 echo "=== Copy the file to FTP directory  ==="
-cp $FILE.gz $FTP_UPLOAD_DIR
+cp $FILE_GZ $FTP_UPLOAD_DIR
 cp $PROTEIN_FILE.gz $FTP_UPLOAD_DIR
