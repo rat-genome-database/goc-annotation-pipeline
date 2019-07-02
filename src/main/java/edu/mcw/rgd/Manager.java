@@ -95,9 +95,8 @@ public class Manager {
 
     void handleGO(String species, int speciesTypeKey) throws Exception {
 
-
         log.info("Getting RGD annotations for species "+ species);
-        BufferedWriter bw;
+
         long startTime = System.currentTimeMillis();
         String fileName = getOutputFileRGD();
         String fileNameProtein = getOutputFileProtein();
@@ -106,9 +105,8 @@ public class Manager {
                 .replace("#DATE#", headerDate.format(new Date()));
         FileWriter w = new FileWriter(fileName);
         FileWriter wp = new FileWriter(fileNameProtein);
-        bw = new BufferedWriter(w);
+        BufferedWriter bw = new BufferedWriter(w);
         bw.write(headerLines);
-
 
 
         Set<Annotation> annotations = new TreeSet<>(new Comparator() {
@@ -140,20 +138,17 @@ public class Manager {
         });
 
 
-     for(Annotation annotation: annotations ) {
-            try {
-                GoAnnotation result = handleAnnotation(annotation);
-                if(result != null) {
-                    result.setTaxon("taxon:" + SpeciesType.getTaxonomicId(speciesTypeKey));
-                    filteredList.add(result);
-                    writeLine(bw,result);
-                }
-            } catch(Exception e) {
-                throw new RuntimeException(e);
+        for(Annotation annotation: annotations ) {
+            GoAnnotation result = handleAnnotation(annotation);
+            if(result != null) {
+                result.setTaxon("taxon:" + SpeciesType.getTaxonomicId(speciesTypeKey));
+                filteredList.add(result);
+                writeLine(bw,result);
             }
         }
         bw.close();
         w.close();
+
         logSkipped.info(" Summary Report \n");
         logSkipped.info(" Total Number of GO Annotations in RGD: " + annotations.size() + "\n");
         logSkipped.info(" Total Number of Annotations Sent to GO from RGD: " + filteredList.size() + "\n" );
@@ -212,7 +207,7 @@ public class Manager {
     }
     GoAnnotation handleAnnotation(Annotation a) throws Exception {
 
-        log.info("Verifying annotation as per Go Rules "+ a.getTermAcc());
+        log.debug("Verifying annotation as per Go Rules "+ a.getTermAcc());
         long startTime = System.currentTimeMillis();
         GoAnnotation goAnnotation = new GoAnnotation();
 

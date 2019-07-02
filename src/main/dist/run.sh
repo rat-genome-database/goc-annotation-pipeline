@@ -52,8 +52,8 @@ cp data/$PROTEIN_FILE $GITHUBDIR
 
 cd $GITHUBDIR
 echo "=== Compress new file in github directory ==="
-gzip $FILENAME
-gzip $PROTEIN_FILE
+gzip --force $FILENAME
+gzip --force $PROTEIN_FILE
 
 echo "=== Checkin the file to github ==="
 git add $FILE_GZ
