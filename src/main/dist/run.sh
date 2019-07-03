@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shell script to run Annotation Count pipeline
 . /etc/profile
 
 set -e
@@ -37,7 +36,7 @@ java -Dspring.config=$APPDIR/../properties/default_db.xml \
     -Dlog4j.configuration=file://$APPDIR/properties/log4j.properties \
     -jar lib/${APPNAME}.jar "$@"
 
-mailx -s "[$SERVER]GOC Ontology pipeline - Sum4mary Report " $EMAILLIST<logs/skipped.log
+mailx -s "[$SERVER]GOC Ontology pipeline - Summary Report " $EMAILLIST<logs/skipped.log
 
 
 ##########################################################################
