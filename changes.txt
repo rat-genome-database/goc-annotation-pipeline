@@ -1,3 +1,6 @@
+build 2019-07-03
+  fixed bug in run.sh script: the code was hanging up on 'gzip' cmd waiting for user input to overwrite destination file ...
+
 ver 2.3.2, Oct 10, 2018
   moved as is from subversion to github
 

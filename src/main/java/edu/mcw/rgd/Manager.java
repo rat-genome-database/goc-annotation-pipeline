@@ -140,16 +140,12 @@ public class Manager {
         });
 
 
-     for(Annotation annotation: annotations ) {
-            try {
-                GoAnnotation result = handleAnnotation(annotation);
-                if(result != null) {
-                    result.setTaxon("taxon:" + SpeciesType.getTaxonomicId(speciesTypeKey));
-                    filteredList.add(result);
-                    writeLine(bw,result);
-                }
-            } catch(Exception e) {
-                throw new RuntimeException(e);
+        for(Annotation annotation: annotations ) {
+            GoAnnotation result = handleAnnotation(annotation);
+            if(result != null) {
+                result.setTaxon("taxon:" + SpeciesType.getTaxonomicId(speciesTypeKey));
+                filteredList.add(result);
+                writeLine(bw,result);
             }
         }
         bw.close();
