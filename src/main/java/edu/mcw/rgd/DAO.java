@@ -2,11 +2,7 @@ package edu.mcw.rgd;
 
 import edu.mcw.rgd.dao.impl.*;
 import edu.mcw.rgd.dao.spring.IntStringMapQuery;
-import edu.mcw.rgd.datamodel.Ortholog;
-import edu.mcw.rgd.datamodel.XdbId;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
-import edu.mcw.rgd.datamodel.ontologyx.TermSynonym;
-import org.apache.log4j.Logger;
 
 import java.util.*;
 
@@ -47,16 +43,12 @@ public class DAO {
         return pmidMap;
     }
 
-    public List<TermSynonym> getTermSynonyms(String termAcc) throws Exception {
-        return odao.getTermSynonyms(termAcc);
-    }
-
     public List<String> getAllActiveTermDescandantAccIds(String termAcc) throws Exception {
         return odao.getAllActiveTermDescendantAccIds(termAcc);
     }
 
     public List<String> getObsoleteTermsForGO() throws Exception {
-        List<String> result =  odao.getObsoleteTerms("BP");
+        List<String> result = odao.getObsoleteTerms("BP");
         result.addAll(odao.getObsoleteTerms("MF"));
         result.addAll(odao.getObsoleteTerms("CC"));
         return result;

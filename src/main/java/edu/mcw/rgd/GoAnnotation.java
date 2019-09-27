@@ -1,7 +1,5 @@
 package edu.mcw.rgd;
 
-import edu.mcw.rgd.datamodel.ontology.Annotation;
-
 /**
  * Created by hsnalabolu on 3/21/2019.
  */
