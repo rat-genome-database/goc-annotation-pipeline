@@ -3,7 +3,6 @@ package edu.mcw.rgd;
 import edu.mcw.rgd.datamodel.*;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
 import edu.mcw.rgd.datamodel.ontologyx.Aspect;
-import edu.mcw.rgd.datamodel.ontologyx.TermSynonym;
 import edu.mcw.rgd.process.Utils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -14,7 +13,6 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author hsnalabolu
@@ -35,13 +33,13 @@ public class Manager {
     private List<String> obsoleteTerms;
     static private Map<Integer, String> pmidMap;
     final String HEADER_COMMON_LINES =
-                    "!gaf-version: 2.1\n" +
-                            "!{ The gene_association.rgd file is available at the GO Consortium website (http://www.geneontology.org/page/download-go-annotations) and on RGD's FTP site (ftp://ftp.rgd.mcw.edu/pub/data_release/). The file and its contents follow the specifications laid out by the Consortium, currently GO Annotation File (GAF) Format 2.1 located at http://www.geneontology.org/page/go-annotation-file-gaf-format-21.  This requires that some details available for certain annotations on the RGD website and/or in other annotations files found on the RGD FTP site must be excluded from this file in order to conform to the GOC guidelines and to correspond to GAF files from other groups. }\n" +
-                            "!{ As of December 2016, the gene_association.rgd file only contains 'RGD' in column 1 and RGD gene identifiers in column 2. }\n" +
-                            "!{ As of March 2018, the gene_association.rgd file no longer includes identifiers for the original references (see below) for ISO annotations in column 6. For ISO annotations, entries in column 6 will be limited to RGD:1624291, RGD's internal reference which explains the assignment of GO ISO annotations to rat genes.  }\n" +
-                            "!{ The gene_protein_association.rgd file (available on the RGD ftp site at ftp://ftp.rgd.mcw.edu/pub/data_release/) contains both RGD gene and UniProt protein IDs in columns 1/2. The gene_protein_association.rgd file also includes original reference IDs for rat ISO annotations, as well as the ID for RGD's internal reference which explains the assignment of GO ISO annotations to rat genes.  \"Original reference\" refers to the identifier(s), such as PMIDs and/or other database IDs for the references used to assign GO annotations to genes or proteins in other species which are then inferred to rat genes by orthology. }\n" +
-                            "!{ Additional annotation files can be found on RGD's ftp site in the ftp://ftp.rgd.mcw.edu/pub/data_release/annotated_rgd_objects_by_ontology/ directory and its \"with_terms\" subdirectory (ftp://ftp.rgd.mcw.edu/pub/data_release/annotated_rgd_objects_by_ontology/with_terms/). The annotated_rgd_objects_by_ontology directory contains GAF-formatted files for all of RGD's ontology annotations, that is, annotations for all of the ontologies that RGD uses for all annotated objects from all of the species in RGD.  Files in the \"with_terms\" subdirectory contain the same data with the addition of ontology terms for human-readability as well as additional information in the form of curator notes. }\n" +
-                            "!{ For additional information about the file formats for files in the annotated_rgd_objects_by_ontology/ directory and it's \"with_terms\" subdirectory see the README files at ftp://ftp.rgd.mcw.edu/pub/data_release/annotated_rgd_objects_by_ontology/README and ftp://ftp.rgd.mcw.edu/pub/data_release/annotated_rgd_objects_by_ontology/with_terms/WITHTERMS_README. }\n";
+            "!gaf-version: 2.1\n" +
+                    "!{ The gene_association.rgd file is available at the GO Consortium website (http://www.geneontology.org/page/download-go-annotations) and on RGD's FTP site (ftp://ftp.rgd.mcw.edu/pub/data_release/). The file and its contents follow the specifications laid out by the Consortium, currently GO Annotation File (GAF) Format 2.1 located at http://www.geneontology.org/page/go-annotation-file-gaf-format-21.  This requires that some details available for certain annotations on the RGD website and/or in other annotations files found on the RGD FTP site must be excluded from this file in order to conform to the GOC guidelines and to correspond to GAF files from other groups. }\n" +
+                    "!{ As of December 2016, the gene_association.rgd file only contains 'RGD' in column 1 and RGD gene identifiers in column 2. }\n" +
+                    "!{ As of March 2018, the gene_association.rgd file no longer includes identifiers for the original references (see below) for ISO annotations in column 6. For ISO annotations, entries in column 6 will be limited to RGD:1624291, RGD's internal reference which explains the assignment of GO ISO annotations to rat genes.  }\n" +
+                    "!{ The gene_protein_association.rgd file (available on the RGD ftp site at ftp://ftp.rgd.mcw.edu/pub/data_release/) contains both RGD gene and UniProt protein IDs in columns 1/2. The gene_protein_association.rgd file also includes original reference IDs for rat ISO annotations, as well as the ID for RGD's internal reference which explains the assignment of GO ISO annotations to rat genes.  \"Original reference\" refers to the identifier(s), such as PMIDs and/or other database IDs for the references used to assign GO annotations to genes or proteins in other species which are then inferred to rat genes by orthology. }\n" +
+                    "!{ Additional annotation files can be found on RGD's ftp site in the ftp://ftp.rgd.mcw.edu/pub/data_release/annotated_rgd_objects_by_ontology/ directory and its \"with_terms\" subdirectory (ftp://ftp.rgd.mcw.edu/pub/data_release/annotated_rgd_objects_by_ontology/with_terms/). The annotated_rgd_objects_by_ontology directory contains GAF-formatted files for all of RGD's ontology annotations, that is, annotations for all of the ontologies that RGD uses for all annotated objects from all of the species in RGD.  Files in the \"with_terms\" subdirectory contain the same data with the addition of ontology terms for human-readability as well as additional information in the form of curator notes. }\n" +
+                    "!{ For additional information about the file formats for files in the annotated_rgd_objects_by_ontology/ directory and it's \"with_terms\" subdirectory see the README files at ftp://ftp.rgd.mcw.edu/pub/data_release/annotated_rgd_objects_by_ontology/README and ftp://ftp.rgd.mcw.edu/pub/data_release/annotated_rgd_objects_by_ontology/with_terms/WITHTERMS_README. }\n";
     SimpleDateFormat sdt = new SimpleDateFormat("yyyyMMdd");
     SimpleDateFormat headerDate = new SimpleDateFormat("yyyy/MM/dd");
 
@@ -67,8 +65,8 @@ public class Manager {
         try {
             manager.run();
         } catch (Exception e) {
-           e.printStackTrace();
-           System.exit(1);
+            e.printStackTrace();
+            System.exit(1);
         }
     }
 
@@ -98,33 +96,15 @@ public class Manager {
         log.info("Getting RGD annotations for species "+ species);
 
         long startTime = System.currentTimeMillis();
-        String fileName = getOutputFileRGD();
-        String fileNameProtein = getOutputFileProtein();
+
         String headerLines = HEADER_COMMON_LINES
                 .replace("#SPECIES#", species)
                 .replace("#DATE#", headerDate.format(new Date()));
-        FileWriter w = new FileWriter(fileName);
-        FileWriter wp = new FileWriter(fileNameProtein);
-        BufferedWriter bw = new BufferedWriter(w);
+
+        BufferedWriter bw = new BufferedWriter(new FileWriter(getOutputFileRGD()));
         bw.write(headerLines);
 
-
-        Set<Annotation> annotations = new TreeSet<>(new Comparator() {
-            @Override
-            public int compare(Object o1, Object o2) {
-                if(((Annotation)o1).equals((Annotation)o2))
-                    return 0;
-                else
-                    return 1;
-            }
-        });
-
-       annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey, Aspect.BIOLOGICAL_PROCESS));
-        annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey,Aspect.MOLECULAR_FUNCTION));
-        annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey,Aspect.CELLULAR_COMPONENT));
-
-        catalyticTerms = dao.getAllActiveTermDescandantAccIds("GO:0003824");
-        obsoleteTerms = dao.getObsoleteTermsForGO();
+        Collection<Annotation> annotations = loadAnnotations(speciesTypeKey);
 
 
         Set<GoAnnotation> filteredList = new TreeSet<>(new Comparator() {
@@ -138,7 +118,7 @@ public class Manager {
         });
 
 
-        for(Annotation annotation: annotations ) {
+        for( Annotation annotation: annotations ) {
             GoAnnotation result = handleAnnotation(annotation);
             if(result != null) {
                 result.setTaxon("taxon:" + SpeciesType.getTaxonomicId(speciesTypeKey));
@@ -147,7 +127,6 @@ public class Manager {
             }
         }
         bw.close();
-        w.close();
 
         logSkipped.info(" Summary Report \n");
         logSkipped.info(" Total Number of GO Annotations in RGD: " + annotations.size() + "\n");
@@ -163,8 +142,7 @@ public class Manager {
         logSkipped.info(" IPI annotations to root terms with null WITH field: " + ipiAnnot  );
 
 
-        FileReader fr=new FileReader(getGoaFile());
-        BufferedReader br=new BufferedReader(fr);
+        BufferedReader br=new BufferedReader(new FileReader(getGoaFile()));
         String line;
         while( null != (line = br.readLine())){
 
@@ -190,25 +168,127 @@ public class Manager {
             goAnnotation.setAnnotExtension(tokens[15]);
             goAnnotation.setGeneProductId(tokens[16]);
 
-           filteredList.add(goAnnotation);
+            filteredList.add(goAnnotation);
         }
         br.close();
-        bw = new BufferedWriter(wp);
+
+        bw = new BufferedWriter(new FileWriter(getOutputFileProtein()));
         bw.write(headerLines);
-        for(GoAnnotation g:filteredList){
+        for( GoAnnotation g:filteredList ){
             writeLine(bw,g);
         }
-
         bw.close();
-        wp.close();
+
         log.info("END:  time elapsed: " + Utils.formatElapsedTime(startTime, System.currentTimeMillis()));
-
-
     }
+
+    // load annotations, ordered by (RGD_ID,TERM_ACC)
+    Collection<Annotation> loadAnnotations(int speciesTypeKey) throws Exception {
+
+        List<Annotation> annotations = new ArrayList<>();
+
+        annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey, Aspect.BIOLOGICAL_PROCESS));
+        annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey, Aspect.MOLECULAR_FUNCTION));
+        annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey, Aspect.CELLULAR_COMPONENT));
+
+        catalyticTerms = dao.getAllActiveTermDescandantAccIds("GO:0003824");
+        obsoleteTerms = dao.getObsoleteTermsForGO();
+
+        return deconsolidateAnnotations(annotations);
+    }
+
+    /**
+     * in RGD, we store pipeline annotations in consolidated form,
+     * f.e. XREF_SOURCE: MGI:MGI:1100157|MGI:MGI:3714678|PMID:17476307|PMID:9398843
+     *      NOTES:       MGI:MGI:2156556|MGI:MGI:2176173|MGI:MGI:2177226  (MGI:MGI:1100157|PMID:9398843), (MGI:MGI:3714678|PMID:17476307)
+     * but GO spec says, REFERENCES column 6 can contain at most one PMID
+     * so we must deconsolidate RGD annotations
+     * what means we must split them into multiple, f.e.
+     *    XREF_SOURCE1:  MGI:MGI:1100157|PMID:9398843
+     *    XREF_SOURCE2:  MGI:MGI:3714678|PMID:17476307
+     */
+    Collection<Annotation> deconsolidateAnnotations(Collection<Annotation> annotations) throws Exception {
+
+        int deconsolidatedAnnotsIncoming = 0;
+        int deconsolidatedAnnotsCreated = 0;
+
+        Set<Annotation> result = new TreeSet<>(new Comparator<Annotation>() {
+            @Override
+            public int compare(Annotation o1, Annotation o2) {
+                int r = o1.getAnnotatedObjectRgdId() - o2.getAnnotatedObjectRgdId();
+                if( r!=0 ) {
+                    return r;
+                }
+                return o1.getTermAcc().compareTo(o2.getTermAcc());
+            }
+        });
+
+        for( Annotation a: annotations ) {
+
+            String xrefSrc = Utils.defaultString(a.getXrefSource());
+            int posPmid1 = xrefSrc.indexOf("PMID:");
+            int posPmid2 = xrefSrc.lastIndexOf("PMID:");
+            if( !(posPmid1>=0 && posPmid2>posPmid1) ) {
+                // only one PMID, annotation is already GO spec compliant
+                result.add(a);
+                continue;
+            }
+            deconsolidatedAnnotsIncoming++;
+
+            int parPos = a.getNotes().indexOf("(");
+            if( parPos<0 ) {
+                logSkipped.warn("CANNOT DECONSOLIDATE ANNOTATION! SKIPPING IT: notes info missing");
+                continue;
+            }
+            String notesOrig = a.getNotes().substring(0, parPos).trim();
+
+            // multi PMID annotation: deconsolidate it
+            String[] xrefs = xrefSrc.split("[\\|\\,]");
+            for( ;; ){
+                // extract PMID from xrefSrc
+                String pmid = null;
+                for( int i=0; i<xrefs.length; i++ ) {
+                    if( xrefs[i].startsWith("PMID:") ) {
+                        pmid = xrefs[i];
+                        xrefs[i] = "";
+                        break;
+                    }
+                }
+                if( pmid==null ) {
+                    break;
+                }
+
+                // find corresponding PMID info in NOTES field
+                int pmidPos = a.getNotes().indexOf(pmid);
+                if( pmidPos<0 ) {
+                    logSkipped.warn("CANNOT DECONSOLIDATE ANNOTATION! SKIPPING IT: notes info missing PMID");
+                    continue;
+                }
+                int parStartPos = a.getNotes().lastIndexOf("(", pmidPos);
+                int parEndPos = a.getNotes().indexOf(")", pmidPos);
+                if( parStartPos<0 || parEndPos<parStartPos ) {
+                    logSkipped.warn("CANNOT DECONSOLIDATE ANNOTATION! SKIPPING IT: notes info malformed PMID");
+                    continue;
+                }
+                String xrefInfo = a.getNotes().substring(parStartPos+1, parEndPos);
+
+                Annotation ann = (Annotation)a.clone();
+                ann.setXrefSource(xrefInfo);
+                ann.setNotes(notesOrig);
+                result.add(ann);
+                deconsolidatedAnnotsCreated++;
+            }
+        }
+
+        logSkipped.info(deconsolidatedAnnotsIncoming+" incoming annotations deconsolidated into "+deconsolidatedAnnotsCreated+" annotations");
+
+        return result;
+    }
+
     GoAnnotation handleAnnotation(Annotation a) throws Exception {
 
         log.debug("Verifying annotation as per Go Rules "+ a.getTermAcc());
-        long startTime = System.currentTimeMillis();
+
         GoAnnotation goAnnotation = new GoAnnotation();
 
         //Check for Gene Object Type and remove the annotation without it
@@ -228,7 +308,7 @@ public class Manager {
         //GORules:
         //GO consortium rule GO:0000026
         if(a.getEvidence().equals("IBA") && !a.getDataSrc().equals("PAINT")) {
-            log.info(a.getTermAcc() +" is an IBA annotation: Annotation skipped");
+            log.debug(a.getTermAcc() +" is an IBA annotation: Annotation skipped");
             ibaAnnot++;
             return null;
         }
@@ -236,7 +316,7 @@ public class Manager {
         //GO consortium rule GO:0000020
         //Check for obsolete terms and filter them
         if(obsoleteTerms.contains(a.getTermAcc())){
-            log.info(a.getTermAcc() +" is an Obsolete Term: Annotation skipped");
+            log.debug(a.getTermAcc() +" is an Obsolete Term: Annotation skipped");
             obsolete++;
             return null;
         }
@@ -281,14 +361,14 @@ public class Manager {
         //"binding" annotation -- GO:0005488 -- must have evidence 'IPI' and non-null WITH field
         // "protein binding" annotation -- GO:0005515 - no ISS or ISS-related annotations (if block allows only IPI annotations)
         if( (a.getTermAcc().equals("GO:0005515") || a.getTermAcc().equals("GO:0005488"))) {
-               if(a.getEvidence().equals("IPI")) {
-                   if (goAnnotation.getWithInfo().length() == 0) {
-                       ipiAnnot++;
-                       return null;
-                   }
-               } else { ipiAnnot++;
-                        return null;}
-            log.info(a.getTermAcc() +" is an "+a.getEvidence()+ " Annotation. Only IPI annotation with a non-null WITH field are allowed.");
+            if(a.getEvidence().equals("IPI")) {
+                if (goAnnotation.getWithInfo().length() == 0) {
+                    ipiAnnot++;
+                    return null;
+                }
+            } else { ipiAnnot++;
+                return null;}
+            log.debug(a.getTermAcc() +" is an "+a.getEvidence()+ " Annotation. Only IPI annotation with a non-null WITH field are allowed.");
 
         }
 

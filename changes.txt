@@ -1,3 +1,6 @@
+2019-09-27
+  enforced GAF rule that thare should be at most one PMID in REFERENCES column
+
 2019-07-02
   fixed bug in run.sh script: the code was hanging up on 'gzip' cmd waiting for user input to overwrite destination file ...
 
