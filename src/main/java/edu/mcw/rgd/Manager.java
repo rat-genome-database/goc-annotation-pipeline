@@ -212,16 +212,7 @@ public class Manager {
         int deconsolidatedAnnotsIncoming = 0;
         int deconsolidatedAnnotsCreated = 0;
 
-        Set<Annotation> result = new TreeSet<>(new Comparator<Annotation>() {
-            @Override
-            public int compare(Annotation o1, Annotation o2) {
-                int r = o1.getAnnotatedObjectRgdId() - o2.getAnnotatedObjectRgdId();
-                if( r!=0 ) {
-                    return r;
-                }
-                return o1.getTermAcc().compareTo(o2.getTermAcc());
-            }
-        });
+        List<Annotation> result = new ArrayList<>(annotations.size());
 
         for( Annotation a: annotations ) {
 
@@ -281,6 +272,17 @@ public class Manager {
         }
 
         logSkipped.info(deconsolidatedAnnotsIncoming+" incoming annotations deconsolidated into "+deconsolidatedAnnotsCreated+" annotations");
+
+        Collections.sort(result, new Comparator<Annotation>() {
+            @Override
+            public int compare(Annotation o1, Annotation o2) {
+                int r = o1.getAnnotatedObjectRgdId() - o2.getAnnotatedObjectRgdId();
+                if( r!=0 ) {
+                    return r;
+                }
+                return o1.getTermAcc().compareTo(o2.getTermAcc());
+            }
+        });
 
         return result;
     }
