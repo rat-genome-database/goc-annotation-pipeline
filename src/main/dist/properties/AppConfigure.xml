@@ -14,5 +14,6 @@
         <property name="goaFile" value="data/goa_rgd.txt" />
         <property name="outputFileRGD" value="data/gene_association.rgd" />
         <property name="outputFileProtein" value="data/gene_protein_association.rgd" />
+        <property name="fileSizeChangeThresholdInPercent" value="7" />
     </bean>
 </beans>
