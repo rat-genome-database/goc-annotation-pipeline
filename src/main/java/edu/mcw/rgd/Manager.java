@@ -564,10 +564,10 @@ public class Manager {
             }
         });
 
-        // compute average file size from 3 most recent backup files
+        // compute average file size from 5 most recent backup files
         long fileSizeSum = 0;
         int i;
-        for( i=0; i<3 && i<files.length; i++ ) {
+        for( i=0; i<5 && i<files.length; i++ ) {
             fileSizeSum += files[i].length();
         }
         if( fileSizeSum>0 ) {
@@ -578,7 +578,7 @@ public class Manager {
             long maxAllowableFileSize = (100 + getFileSizeChangeThresholdInPercent()) * avgBackupFileSize / 100;
 
             if( fileSize < minAllowableFileSize || fileSize > maxAllowableFileSize ) {
-                throw new Exception("File size for "+file.getAbsolutePath()+" differs much from the size of backup files! Review the pipeline!");
+                throw new Exception("File size for "+file.getAbsolutePath()+" of "+fileSize+" is outside of allowed range ["+minAllowableFileSize+", "+maxAllowableFileSize+"]");
             }
         }
     }
