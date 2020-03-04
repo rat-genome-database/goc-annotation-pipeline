@@ -3,6 +3,7 @@ package edu.mcw.rgd;
 import edu.mcw.rgd.dao.impl.*;
 import edu.mcw.rgd.dao.spring.IntStringMapQuery;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
+import org.apache.log4j.Logger;
 
 import java.util.*;
 
@@ -18,10 +19,9 @@ public class DAO {
     OntologyXDAO odao = new OntologyXDAO();
     ReferenceDAO rdao = new ReferenceDAO();
 
-    public DAO() {
-        System.out.println(adao.getConnectionInfo());
+    public String getConnectionInfo() {
+        return adao.getConnectionInfo();
     }
-
 
     public List<Annotation> getAnnotationsBySpecies(int speciesType,String aspect) throws Exception {
         return adao.getAnnotationsBySpecies(speciesType,aspect);
@@ -37,7 +37,8 @@ public class DAO {
         for (IntStringMapQuery.MapPair pair : pmidList) {
             String pmid = pmidMap.put(pair.keyValue, pair.stringValue);
             if( pmid != null ) {
-                System.out.println("multiple PMIDs for REF_RGD_ID:"+pair.keyValue+", PMID:"+pmid);
+                Logger log = Logger.getLogger("core");
+                log.warn("WARNING! multiple PMIDs for REF_RGD_ID:"+pair.keyValue+", PMID:"+pmid);
             }
         }
         return pmidMap;

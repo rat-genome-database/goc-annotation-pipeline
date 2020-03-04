@@ -34,7 +34,7 @@ java -Dspring.config=$APPDIR/../properties/default_db2.xml \
     -Dlog4j.configuration=file://$APPDIR/properties/log4j.properties \
     -jar lib/${APPNAME}.jar "$@"
 
-mailx -s "[$SERVER]GOC Ontology pipeline - Summary Report " $EMAILLIST<logs/skipped.log
+mailx -s "[$SERVER]GOC Ontology pipeline - Summary Report " $EMAILLIST<logs/summary.log
 
 
 if [ "$SERVER" == "REED" ]; then

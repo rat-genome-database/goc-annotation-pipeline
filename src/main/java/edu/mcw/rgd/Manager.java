@@ -56,7 +56,6 @@ public class Manager {
     private int icIpiIda = 0;
 
     Logger log = Logger.getLogger("core");
-    Logger logSkipped = Logger.getLogger("skipped");
 
     public static void main(String[] args) throws Exception {
 
@@ -67,9 +66,8 @@ public class Manager {
         try {
             manager.run(SpeciesType.RAT);
         } catch (Exception e) {
-            e.printStackTrace();
-            Utils.printStackTrace(e, manager.logSkipped);
-            System.exit(1);
+            Utils.printStackTrace(e, manager.log);
+            throw e;
         }
     }
 
@@ -78,7 +76,11 @@ public class Manager {
         long startTime = System.currentTimeMillis();
 
         String species = SpeciesType.getCommonName(speciesTypeKey);
-        log.info("START: species = " + species);
+        log.info("START: " + getVersion());
+        log.info("   " + dao.getConnectionInfo());
+        SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        log.info("   started at "+sdt.format(new Date(startTime)));
+
         pmidMap = dao.loadPmidMap();
         handleGO(species, speciesTypeKey);
 
@@ -100,7 +102,6 @@ public class Manager {
         bw.write(headerLines);
 
         Collection<Annotation> annotations = loadAnnotations(speciesTypeKey);
-
 
         Set<GoAnnotation> filteredList = new TreeSet<>(new Comparator() {
             @Override
@@ -125,18 +126,17 @@ public class Manager {
 
         validateOutputFileSize();
 
-        logSkipped.info(" Summary Report \n");
-        logSkipped.info(" Total Number of GO Annotations in RGD: " + annotations.size() + "\n");
-        logSkipped.info(" Total Number of Annotations Sent to GO from RGD: " + filteredList.size() + "\n" );
-        logSkipped.info(" Annotations to Obsolete terms: " + obsolete );
-        logSkipped.info(" NotForCuration Annotations: " + notForCuration );
-        logSkipped.info(" Not gene Annotations: " + notGene );
-        logSkipped.info(" IEP and HEP Annotations to MF and CC Ontology: " + iepHep );
-        logSkipped.info(" No Data (ND) evidence code Annotations: " + ndAnnotations );
-        logSkipped.info(" IPI Annotations to Catalytic Terms: " + ipiInCatalytic );
-        logSkipped.info(" IC,IPI,IDA Annotations violating WITH field rule: " + icIpiIda  );
-        logSkipped.info(" IBA annotations from other sources: "+ ibaAnnot );
-        logSkipped.info(" IPI annotations to root terms with null WITH field: " + ipiAnnot  );
+        log.info("Total Number of GO Annotations in RGD: " + annotations.size());
+        log.info("Total Number of Annotations Sent to GO from RGD: " + filteredList.size());
+        log.info("Annotations to Obsolete terms: " + obsolete );
+        log.info("NotForCuration Annotations: " + notForCuration );
+        log.info("Not gene Annotations: " + notGene );
+        log.info("IEP and HEP Annotations to MF and CC Ontology: " + iepHep );
+        log.info("No Data (ND) evidence code Annotations: " + ndAnnotations );
+        log.info("IPI Annotations to Catalytic Terms: " + ipiInCatalytic );
+        log.info("IC,IPI,IDA Annotations violating WITH field rule: " + icIpiIda  );
+        log.info("IBA annotations from other sources: "+ ibaAnnot );
+        log.info("IPI annotations to root terms with null WITH field: " + ipiAnnot  );
 
 
         BufferedReader br = Utils.openReader(getGoaFile());
@@ -225,7 +225,7 @@ public class Manager {
 
             int parPos = a.getNotes().indexOf("(");
             if( parPos<0 ) {
-                logSkipped.warn("CANNOT DECONSOLIDATE ANNOTATION! SKIPPING IT: notes info missing");
+                log.warn("WARNING! CANNOT DECONSOLIDATE ANNOTATION! SKIPPING IT: notes info missing");
                 continue;
             }
             String notesOrig = a.getNotes().substring(0, parPos).trim();
@@ -249,13 +249,13 @@ public class Manager {
                 // find corresponding PMID info in NOTES field
                 int pmidPos = a.getNotes().indexOf(pmid);
                 if( pmidPos<0 ) {
-                    logSkipped.warn("CANNOT DECONSOLIDATE ANNOTATION! SKIPPING IT: notes info missing PMID");
+                    log.warn("WARNING! CANNOT DECONSOLIDATE ANNOTATION! SKIPPING IT: notes info missing PMID");
                     continue;
                 }
                 int parStartPos = a.getNotes().lastIndexOf("(", pmidPos);
                 int parEndPos = a.getNotes().indexOf(")", pmidPos);
                 if( parStartPos<0 || parEndPos<parStartPos ) {
-                    logSkipped.warn("CANNOT DECONSOLIDATE ANNOTATION! SKIPPING IT: notes info malformed PMID");
+                    log.warn("WARNING! CANNOT DECONSOLIDATE ANNOTATION! SKIPPING IT: notes info malformed PMID");
                     continue;
                 }
                 String xrefInfo = a.getNotes().substring(parStartPos+1, parEndPos);
@@ -268,7 +268,7 @@ public class Manager {
             }
         }
 
-        logSkipped.info(deconsolidatedAnnotsIncoming+" incoming annotations deconsolidated into "+deconsolidatedAnnotsCreated+" annotations");
+        log.info(deconsolidatedAnnotsIncoming+" incoming annotations deconsolidated into "+deconsolidatedAnnotsCreated+" annotations");
 
         Collections.sort(result, new Comparator<Annotation>() {
             @Override
@@ -367,14 +367,14 @@ public class Manager {
                 }
             } else { ipiAnnot++;
                 return null;}
-            log.debug(a.getTermAcc() +" is an "+a.getEvidence()+ " Annotation. Only IPI annotation with a non-null WITH field are allowed.");
+            log.debug(a.getTermAcc() +" is an "+a.getEvidence()+ " annotation. Only IPI annotation with a non-null WITH field are allowed.");
 
         }
 
         // GO consortium rule GO:0000006
         //IEP and HEP annotations are restricted to terms from Biological Process ontology
         if((a.getEvidence().equals("IEP") || a.getEvidence().equals("HEP")) && !a.getAspect().equals("P")) {
-            log.info(a.getTermAcc() +" is an "+a.getEvidence()+ "annotation. It is restricted to Biological Process ontology" );
+            log.info(a.getTermAcc() +" is an "+a.getEvidence()+ " annotation. It is restricted to Biological Process ontology" );
             iepHep++;
             return null;
         }
@@ -382,7 +382,7 @@ public class Manager {
         // GO consortium rule GO:0000007
         //IPI annotations should not be used with catalytic molecular function terms
         if(a.getEvidence().equals("IPI")  && catalyticTerms.contains(a.getTermAcc())) {
-            log.info(a.getTermAcc() +" is an "+a.getEvidence()+ "annotation. They should not be used with catalytic molecular terms." );
+            log.info(a.getTermAcc() +" is an "+a.getEvidence()+ " annotation. They should not be used with catalytic molecular terms." );
             ipiInCatalytic++;
             return null;
         }

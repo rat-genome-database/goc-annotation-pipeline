@@ -1,3 +1,6 @@
+2020-03-04
+  logging tune up
+
 2019-12-05
   improved reporting in qc of file size
 
