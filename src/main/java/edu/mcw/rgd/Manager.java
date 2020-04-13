@@ -29,6 +29,7 @@ public class Manager {
     private String goaFile;
     private Set<Integer> refRgdIdsForGoPipelines;
     private int fileSizeChangeThresholdInPercent;
+    private Set<String> allowedQualifiers;
 
     private List<String> catalyticTerms;
     private List<String> obsoleteTerms;
@@ -54,6 +55,7 @@ public class Manager {
     private int iepHep = 0;
     private int ndAnnotations = 0;
     private int icIpiIda = 0;
+    private int badQualifier = 0;
 
     Logger log = Logger.getLogger("core");
 
@@ -137,7 +139,9 @@ public class Manager {
         log.info("IC,IPI,IDA Annotations violating WITH field rule: " + icIpiIda  );
         log.info("IBA annotations from other sources: "+ ibaAnnot );
         log.info("IPI annotations to root terms with null WITH field: " + ipiAnnot  );
-
+        if( badQualifier!=0 ) {
+            log.info("annotations with invalid qualifiers (other than NOT, contributes_to, colocalizes_with, ...): " + badQualifier);
+        }
 
         BufferedReader br = Utils.openReader(getGoaFile());
         String line;
@@ -175,8 +179,6 @@ public class Manager {
             writeLine(bw,g);
         }
         bw.close();
-
-        log.info("END:  time elapsed: " + Utils.formatElapsedTime(startTime, System.currentTimeMillis()));
     }
 
     // load annotations, ordered by (RGD_ID,TERM_ACC)
@@ -286,25 +288,32 @@ public class Manager {
 
     GoAnnotation handleAnnotation(Annotation a) throws Exception {
 
-        log.debug("Verifying annotation as per Go Rules "+ a.getTermAcc());
+        log.debug("Verifying annotation as per GO Rules "+ a.getTermAcc());
 
         GoAnnotation goAnnotation = new GoAnnotation();
 
-        //Check for Gene Object Type and remove the annotation without it
-        int objectKey = a.getRgdObjectKey();
-        switch( objectKey ) {
-            case RgdId.OBJECT_KEY_GENES:
-                goAnnotation.setObjectType("gene");
-                break;
-            default:
-                log.info(a.getKey()+ " to term"+ a.getTermAcc() + " is not annotated to a gene.");
-                notGene++;
-                return null;
+        // Check for Gene Object Type and remove the annotation without it
+        if( a.getRgdObjectKey() == RgdId.OBJECT_KEY_GENES ) {
+            goAnnotation.setObjectType("gene");
+        } else {
+            log.info(a.getKey() + " to term" + a.getTermAcc() + " is not annotated to a gene.");
+            notGene++;
+            return null;
         }
 
 
 
         //GORules:
+        //GO consortium rule GO:0000001
+        // Qualifiers must be contributes_to, colocalizes_with, or NOT
+        if( !Utils.isStringEmpty(a.getQualifier()) ) {
+            if( !getAllowedQualifiers().contains(a.getQualifier()) ) {
+                log.debug(a.getQualifier() + " qualifier violates gorule 0000001: Annotation skipped");
+                badQualifier++;
+                return null;
+            }
+        }
+
         //GO consortium rule GO:0000026
         if(a.getEvidence().equals("IBA") && !a.getDataSrc().equals("PAINT")) {
             log.debug(a.getTermAcc() +" is an IBA annotation: Annotation skipped");
@@ -489,7 +498,7 @@ public class Manager {
         return Utils.concatenate(refs, "|");
     }
 
-    synchronized String formatDate(java.util.Date dt) {
+    synchronized String formatDate(Date dt) {
         return dt != null ? sdt.format(dt) : "";
     }
 
@@ -640,6 +649,14 @@ public class Manager {
 
     public int getFileSizeChangeThresholdInPercent() {
         return fileSizeChangeThresholdInPercent;
+    }
+
+    public void setAllowedQualifiers(Set<String> allowedQualifiers) {
+        this.allowedQualifiers = allowedQualifiers;
+    }
+
+    public Set<String> getAllowedQualifiers() {
+        return allowedQualifiers;
     }
 }
 

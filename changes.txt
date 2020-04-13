@@ -1,3 +1,6 @@
+2020-04-13
+  implemented gorule-0000001: a qualifiers must be (contributes_to, colocalizes_with, or NOT)
+
 2020-03-04
   logging tune up
 

@@ -1,7 +1,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.Manager">
-        <property name="version" value="GOC Annotation pipeline  -- build 2020-03-04" />
+        <property name="version" value="GOC Annotation pipeline  -- build 2020-04-13" />
         <property name="pipelineName" value="goc_annotation" />
         <property name="refRgdIdsForGoPipelines">
             <set>
@@ -15,5 +15,14 @@
         <property name="outputFileRGD" value="data/gene_association.rgd" />
         <property name="outputFileProtein" value="data/gene_protein_association.rgd" />
         <property name="fileSizeChangeThresholdInPercent" value="7" />
+        <property name="allowedQualifiers">
+            <set>
+                <value>NOT</value>
+                <value>colocalizes_with</value>
+                <value>contributes_to</value>
+                <value>NOT|contributes_to</value>
+                <value>NOT|colocalizes_with</value>
+            </set>
+        </property>
     </bean>
 </beans>
