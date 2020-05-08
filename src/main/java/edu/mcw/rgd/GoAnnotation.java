@@ -1,9 +1,13 @@
 package edu.mcw.rgd;
 
+import edu.mcw.rgd.process.Utils;
+
+import java.util.Objects;
+
 /**
  * Created by hsnalabolu on 3/21/2019.
  */
-public class GoAnnotation {
+public class GoAnnotation implements Comparable<GoAnnotation> {
 
     public String objectId;
     public String objectSymbol;
@@ -148,5 +152,94 @@ public class GoAnnotation {
 
     public void setGeneProductId(String geneProductId) {
         this.geneProductId = geneProductId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GoAnnotation that = (GoAnnotation) o;
+        return Objects.equals(objectId, that.objectId) &&
+                Objects.equals(objectSymbol, that.objectSymbol) &&
+                Objects.equals(qualifier, that.qualifier) &&
+                Objects.equals(termAcc, that.termAcc) &&
+                Objects.equals(references, that.references) &&
+                Objects.equals(evidence, that.evidence) &&
+                Objects.equals(withInfo, that.withInfo) &&
+                Objects.equals(aspect, that.aspect) &&
+                Objects.equals(objectName, that.objectName) &&
+                Objects.equals(meshOrOmimId, that.meshOrOmimId) &&
+                Objects.equals(objectType, that.objectType) &&
+                Objects.equals(taxon, that.taxon) &&
+                Objects.equals(dataSrc, that.dataSrc) &&
+                Objects.equals(annotExtension, that.annotExtension) &&
+                Objects.equals(geneProductId, that.geneProductId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(objectId, objectSymbol, qualifier, termAcc, references, evidence, withInfo, aspect, objectName, meshOrOmimId, objectType, taxon, dataSrc, annotExtension, geneProductId);
+    }
+
+    @Override
+    public int compareTo(GoAnnotation o) {
+        int r = Utils.stringsCompareTo(objectId, o.objectId);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(objectSymbol, o.objectSymbol);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(termAcc, o.termAcc);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(qualifier, o.qualifier);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(references, o.references);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(evidence, o.evidence);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(withInfo, o.withInfo);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(aspect, o.aspect);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(objectName, o.objectName);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(meshOrOmimId, o.meshOrOmimId);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(objectType, o.objectType);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(taxon, o.taxon);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(dataSrc, o.dataSrc);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(annotExtension, o.annotExtension);
+        if( r!= 0 ) {
+            return r;
+        }
+        r = Utils.stringsCompareTo(geneProductId, o.geneProductId);
+        return r;
     }
 }

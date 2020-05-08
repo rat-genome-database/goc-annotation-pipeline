@@ -12,15 +12,11 @@ fi
 APPNAME=goc_annotation
 APPDIR=/home/rgddata/pipelines/$APPNAME
 APPDATADIR=$APPDIR/data
-GOAFILE=/home/rgddata/pipelines/GOAannotation/data/goa_rgd.txt
 FTP_UPLOAD_DIR=/home/rgddata/data_release
 DATE_EXT=`date +%Y%m%d`
 FILENAME=gene_association.rgd
 PROTEIN_FILE=gene_protein_association.rgd
 GITHUBDIR=github/rgd-annotation-files
-
-echo "=== Copy Rat annotations file from GO to data directory  ==="
-cp $GOAFILE $APPDATADIR
 
 echo "=== Archive the old file in data directory  ==="
 cp $APPDATADIR/$FILENAME $APPDATADIR/$FILENAME.$DATE_EXT

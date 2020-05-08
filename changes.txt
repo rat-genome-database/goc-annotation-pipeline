@@ -1,3 +1,8 @@
+TODO: ISS/ISO annotations: only export RGD:xxx in WITH_INFO field, per request from GO Consortium
+
+2020-05-07
+  implemented sorting for the generated file
+
 2020-04-13
   implemented gorule-0000001: a qualifiers must be (contributes_to, colocalizes_with, or NOT)
 

@@ -100,21 +100,12 @@ public class Manager {
                 .replace("#SPECIES#", species)
                 .replace("##DATE##", headerDate.format(new Date(startTime)));
 
-        BufferedWriter bw = new BufferedWriter(new FileWriter(getOutputFileRGD()));
+        BufferedWriter bw = Utils.openWriter(getOutputFileRGD());
         bw.write(headerLines);
 
         Collection<Annotation> annotations = loadAnnotations(speciesTypeKey);
 
-        Set<GoAnnotation> filteredList = new TreeSet<>(new Comparator() {
-            @Override
-            public int compare(Object o1, Object o2) {
-                if(((GoAnnotation)o1).equals((GoAnnotation)o2))
-                    return 0;
-                else
-                    return 1;
-            }
-        });
-
+        Set<GoAnnotation> filteredList = new TreeSet<>();
 
         for( Annotation annotation: annotations ) {
             GoAnnotation result = handleAnnotation(annotation);
@@ -148,7 +139,7 @@ public class Manager {
         while( null != (line = br.readLine())){
 
             GoAnnotation goAnnotation = new GoAnnotation();
-            String tokens[] = line.split("[\\t]", -1);
+            String[] tokens = line.split("[\\t]", -1);
             if( tokens.length!=17 ) {
                 continue;
             }
@@ -173,7 +164,7 @@ public class Manager {
         }
         br.close();
 
-        bw = new BufferedWriter(new FileWriter(getOutputFileProtein()));
+        bw = Utils.openWriter(getOutputFileProtein()));
         bw.write(headerLines);
         for( GoAnnotation g:filteredList ){
             writeLine(bw,g);
