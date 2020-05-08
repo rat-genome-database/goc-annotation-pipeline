@@ -164,7 +164,7 @@ public class Manager {
         }
         br.close();
 
-        bw = Utils.openWriter(getOutputFileProtein()));
+        bw = Utils.openWriter(getOutputFileProtein());
         bw.write(headerLines);
         for( GoAnnotation g:filteredList ){
             writeLine(bw,g);
