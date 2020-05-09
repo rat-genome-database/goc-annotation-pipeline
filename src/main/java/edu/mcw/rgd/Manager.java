@@ -100,9 +100,6 @@ public class Manager {
                 .replace("#SPECIES#", species)
                 .replace("##DATE##", headerDate.format(new Date(startTime)));
 
-        BufferedWriter bw = Utils.openWriter(getOutputFileRGD());
-        bw.write(headerLines);
-
         Collection<Annotation> annotations = loadAnnotations(speciesTypeKey);
 
         Set<GoAnnotation> filteredList = new TreeSet<>();
@@ -112,10 +109,10 @@ public class Manager {
             if(result != null) {
                 result.setTaxon("taxon:" + SpeciesType.getTaxonomicId(speciesTypeKey));
                 filteredList.add(result);
-                writeLine(bw,result);
             }
         }
-        bw.close();
+
+        writeGeneAssociationsFile(filteredList, headerLines);
 
         validateOutputFileSize();
 
@@ -164,7 +161,7 @@ public class Manager {
         }
         br.close();
 
-        bw = Utils.openWriter(getOutputFileProtein());
+        BufferedWriter bw = Utils.openWriter(getOutputFileProtein());
         bw.write(headerLines);
         for( GoAnnotation g:filteredList ){
             writeLine(bw,g);
@@ -489,12 +486,22 @@ public class Manager {
         return Utils.concatenate(refs, "|");
     }
 
+    void writeGeneAssociationsFile(Collection<GoAnnotation> annotations, String headerLines) throws Exception {
+
+        BufferedWriter bw = Utils.openWriter(getOutputFileRGD());
+        bw.write(headerLines);
+
+        for( GoAnnotation annotation: annotations ) {
+            writeLine(bw, annotation);
+        }
+        bw.close();
+    }
+
     synchronized String formatDate(Date dt) {
         return dt != null ? sdt.format(dt) : "";
     }
 
     void writeLine(BufferedWriter writer, GoAnnotation rec) throws Exception{
-
 
         // column contents must comply with GAF 2.0 format
         writer.append("RGD")
