@@ -263,23 +263,10 @@ public class Manager {
 
         log.info(deconsolidatedAnnotsIncoming+" incoming annotations deconsolidated into "+deconsolidatedAnnotsCreated+" annotations");
 
-        Collections.sort(result, new Comparator<Annotation>() {
-            @Override
-            public int compare(Annotation o1, Annotation o2) {
-                int r = o1.getAnnotatedObjectRgdId() - o2.getAnnotatedObjectRgdId();
-                if( r!=0 ) {
-                    return r;
-                }
-                return o1.getTermAcc().compareTo(o2.getTermAcc());
-            }
-        });
-
         return result;
     }
 
     GoAnnotation handleAnnotation(Annotation a) throws Exception {
-
-        log.debug("Verifying annotation as per GO Rules "+ a.getTermAcc());
 
         GoAnnotation goAnnotation = new GoAnnotation();
 
@@ -476,17 +463,15 @@ public class Manager {
 
     private String mergeWithXrefSource(String references, String xrefSource, String dataSrc, String evidence) {
 
-        if( Utils.isStringEmpty(xrefSource) ) {
-            return references;
-        }
-
         Set<String> refs = new TreeSet<>();
 
         String[] objs = references.split("[\\|\\,\\;]");
         Collections.addAll(refs, objs);
 
-        objs = xrefSource.split("[\\|\\,\\;]");
-        Collections.addAll(refs, objs);
+        if( !Utils.isStringEmpty(xrefSource) ) {
+            objs = xrefSource.split("[\\|\\,\\;]");
+            Collections.addAll(refs, objs);
+        }
 
         //May 2020: per request from GO consortium regarding ISS/ISO annotations from RGD
         // sample REFERENCES field: MGI:MGI:3603471|PMID:14644759|RGD:1624291
