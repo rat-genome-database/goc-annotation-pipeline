@@ -1,4 +1,6 @@
-TODO: ISS/ISO annotations: only export RGD:xxx in WITH_INFO field, per request from GO Consortium
+2020-05-09
+  ISS/ISO annotations: only export RGD:xxx in WITH_INFO field, per request from GO Consortium
+    (we also export GO_REF:xxx values)
 
 2020-05-07
   implemented sorting for the generated file

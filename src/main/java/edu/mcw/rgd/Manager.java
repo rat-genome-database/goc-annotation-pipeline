@@ -460,8 +460,6 @@ public class Manager {
             goAnnotation.setDataSrc(a.getDataSrc());
 
         goAnnotation.setObjectId(a.getAnnotatedObjectRgdId().toString());
-        String references = mergeWithXrefSource(goAnnotation.getReferences(),a.getXrefSource());
-        goAnnotation.setReferences(references);
         goAnnotation.setObjectSymbol(a.getObjectSymbol());
         goAnnotation.setAspect(a.getAspect());
         goAnnotation.setObjectName(a.getObjectName());
@@ -469,10 +467,14 @@ public class Manager {
         goAnnotation.setTermAcc(a.getTermAcc());
         goAnnotation.setEvidence(a.getEvidence());
         goAnnotation.setQualifier(a.getQualifier());
+
+        String references = mergeWithXrefSource(goAnnotation.getReferences(), a.getXrefSource(), goAnnotation.getDataSrc(), goAnnotation.getEvidence());
+        goAnnotation.setReferences(references);
+
         return goAnnotation;
     }
 
-    private String mergeWithXrefSource(String references, String xrefSource) {
+    private String mergeWithXrefSource(String references, String xrefSource, String dataSrc, String evidence) {
 
         if( Utils.isStringEmpty(xrefSource) ) {
             return references;
@@ -485,6 +487,19 @@ public class Manager {
 
         objs = xrefSource.split("[\\|\\,\\;]");
         Collections.addAll(refs, objs);
+
+        //May 2020: per request from GO consortium regarding ISS/ISO annotations from RGD
+        // sample REFERENCES field: MGI:MGI:3603471|PMID:14644759|RGD:1624291
+        //
+        // *Only* the RGD reference should be outputted in this case, since the other 2 IDs correspond to the original data,
+        // they do not provide evidence for the ISO annotation
+        if( dataSrc.equals("RGD") && (evidence.equals("ISS") || evidence.equals("ISO")) ) {
+
+            // remove all non RGD: entries
+            refs.removeIf(ref ->
+                !(ref.startsWith("RGD:") || ref.startsWith("GO_REF:"))
+            );
+        }
 
         return Utils.concatenate(refs, "|");
     }
