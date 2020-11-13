@@ -451,6 +451,8 @@ public class Manager {
         goAnnotation.setTermAcc(a.getTermAcc());
         goAnnotation.setEvidence(a.getEvidence());
         goAnnotation.setQualifier(a.getQualifier());
+        goAnnotation.setAnnotExtension(a.getAnnotationExtension());
+        goAnnotation.setGeneProductId(a.getGeneProductFormId());
 
         String references = mergeWithXrefSource(goAnnotation.getReferences(), a.getXrefSource(), goAnnotation.getDataSrc(), goAnnotation.getEvidence());
         goAnnotation.setReferences(references);
