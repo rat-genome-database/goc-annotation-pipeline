@@ -56,6 +56,7 @@ public class Manager {
     private int ndAnnotations = 0;
     private int icIpiIda = 0;
     private int badQualifier = 0;
+    private int uniProtKbReplacements = 0;
 
     Logger log = Logger.getLogger("core");
 
@@ -129,6 +130,9 @@ public class Manager {
         log.info("IPI annotations to root terms with null WITH field: " + ipiAnnot  );
         if( badQualifier!=0 ) {
             log.info("annotations with invalid qualifiers (other than NOT, contributes_to, colocalizes_with, ...): " + badQualifier);
+        }
+        if( uniProtKbReplacements!=0 ) {
+            log.info("annotations with source field 'UniProtKB' replaced with 'UniProt': " + uniProtKbReplacements);
         }
 
         BufferedReader br = Utils.openReader(getGoaFile());
@@ -437,10 +441,14 @@ public class Manager {
             goAnnotation.setCreatedDate(formatDate(a.getCreatedDate()));
         }
 
-        //DB Abbreviation Check
+        //DB Abbreviation Check for WormBase and UniProt
         if(a.getDataSrc().equalsIgnoreCase("WormBase"))
             goAnnotation.setDataSrc("WB");
         else
+        if(a.getDataSrc().equalsIgnoreCase("UniProtKB")) {
+            goAnnotation.setDataSrc("UniProt");
+            uniProtKbReplacements++;
+        } else
             goAnnotation.setDataSrc(a.getDataSrc());
 
         goAnnotation.setObjectId(a.getAnnotatedObjectRgdId().toString());
