@@ -57,6 +57,7 @@ public class Manager {
     private int icIpiIda = 0;
     private int badQualifier = 0;
     private int uniProtKbReplacements = 0;
+    private int geneProductFormIdCleared = 0;
 
     Logger log = Logger.getLogger("core");
 
@@ -133,6 +134,9 @@ public class Manager {
         }
         if( uniProtKbReplacements!=0 ) {
             log.info("annotations with source field 'UniProtKB' replaced with 'UniProt': " + uniProtKbReplacements);
+        }
+        if( geneProductFormIdCleared!=0 ) {
+            log.info("ISO annotations with cleared GENE_PRODUCT_FORM_ID field: " + geneProductFormIdCleared);
         }
 
         BufferedReader br = Utils.openReader(getGoaFile());
@@ -460,7 +464,16 @@ public class Manager {
         goAnnotation.setEvidence(a.getEvidence());
         goAnnotation.setQualifier(a.getQualifier());
         goAnnotation.setAnnotExtension(a.getAnnotationExtension());
-        goAnnotation.setGeneProductId(a.getGeneProductFormId());
+
+        // clear GENE_PRODUCT_FORM_ID for ISO annotations
+        // reason: ISO annotations are usually made via orthology, and original GENE_PRODUCT_FORM_ID
+        //          cannot be transferred to ISO annotation because it comes from other species
+        String geneProductFormId = a.getGeneProductFormId();
+        if( a.getEvidence().equals("ISO") && !Utils.isStringEmpty(geneProductFormId) ) {
+            geneProductFormId = "";
+            geneProductFormIdCleared++;
+        }
+        goAnnotation.setGeneProductId(geneProductFormId);
 
         String references = mergeWithXrefSource(goAnnotation.getReferences(), a.getXrefSource(), goAnnotation.getDataSrc(), goAnnotation.getEvidence());
         goAnnotation.setReferences(references);
