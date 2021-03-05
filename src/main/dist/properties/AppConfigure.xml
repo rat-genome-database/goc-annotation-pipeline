@@ -1,7 +1,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.Manager">
-        <property name="version" value="GOC Annotation pipeline  -- build Feb 05, 2021" />
+        <property name="version" value="GOC Annotation pipeline  -- build Mar 05, 2021" />
         <property name="pipelineName" value="goc_annotation" />
         <property name="refRgdIdsForGoPipelines">
             <set>
@@ -15,12 +15,41 @@
         <property name="outputFileRGD" value="data/gene_association.rgd" />
         <property name="outputFileProtein" value="data/gene_protein_association.rgd" />
         <property name="fileSizeChangeThresholdInPercent" value="7" />
-        <property name="allowedQualifiers">
+        <property name="allowedQualifiersForMF">
             <set>
-                <value>NOT</value>
-                <value>colocalizes_with</value>
+                <value>enables</value>
                 <value>contributes_to</value>
+                <value>NOT|enables</value>
                 <value>NOT|contributes_to</value>
+            </set>
+        </property>
+        <property name="allowedQualifiersForBP">
+            <set>
+                <value>involved_in</value>
+                <value>acts_upstream_of</value>
+                <value>acts_upstream_of_positive_effect</value>
+                <value>acts_upstream_of_negative_effect</value>
+                <value>acts_upstream_of_or_within</value>
+                <value>acts_upstream_of_or_within_positive_effect</value>
+                <value>acts_upstream_of_or_within_negative_effect</value>
+                <value>NOT|involved_in</value>
+                <value>NOT|acts_upstream_of</value>
+                <value>NOT|acts_upstream_of_positive_effect</value>
+                <value>NOT|acts_upstream_of_negative_effect</value>
+                <value>NOT|acts_upstream_of_or_within</value>
+                <value>NOT|acts_upstream_of_or_within_positive_effect</value>
+                <value>NOT|acts_upstream_of_or_within_negative_effect</value>
+            </set>
+        </property>
+        <property name="allowedQualifiersForCC">
+            <set>
+                <value>located_in</value>
+                <value>part_of</value>
+                <value>is_active_in</value>
+                <value>colocalizes_with</value>
+                <value>NOT|located_in</value>
+                <value>NOT|part_of</value>
+                <value>NOT|is_active_in</value>
                 <value>NOT|colocalizes_with</value>
             </set>
         </property>

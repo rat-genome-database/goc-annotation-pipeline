@@ -1,3 +1,6 @@
+Mar 05, 2021
+  generated files are in gaf 2.2 format
+
 Feb 05, 2021
   implemented clearing of GENE_PRODUCT_FORM_ID fields for ISO annotations
 
