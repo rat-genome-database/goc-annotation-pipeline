@@ -51,7 +51,7 @@ public class Manager {
         "!{ As of December 2016, the gene_association.rgd file only contains 'RGD' in column 1 and RGD gene identifiers in column 2. }\n" +
         "!{ As of March 2018, the gene_association.rgd file no longer includes identifiers for the original references (see below) for ISO annotations in column 6. "+
             "For ISO annotations, entries in column 6 will be limited to RGD:1624291, RGD's internal reference which explains the assignment of GO ISO annotations "+
-            "to rat genes.  }\n" +
+            "to rat genes. }\n" +
         "!{ The gene_protein_association.rgd file (available on the RGD ftp site at https://download.rgd.mcw.edu/data_release/) contains both RGD gene "+
             "and UniProt protein IDs in columns 1/2. The gene_protein_association.rgd file also includes original reference IDs for rat ISO annotations, "+
             "as well as the ID for RGD's internal reference which explains the assignment of GO ISO annotations to rat genes.  \"Original reference\" refers to "+
@@ -142,6 +142,7 @@ public class Manager {
 
         validateOutputFileSize();
 
+        log.info("=====");
         log.info("Total Number of GO Annotations in RGD: " + annotations.size());
         log.info("Total Number of Annotations Sent to GO from RGD: " + filteredList.size());
         log.info("Annotations to Obsolete terms: " + obsolete );
@@ -387,7 +388,8 @@ public class Manager {
         // GO consortium rule GO:0000006
         //IEP and HEP annotations are restricted to terms from Biological Process ontology
         if((a.getEvidence().equals("IEP") || a.getEvidence().equals("HEP")) && !a.getAspect().equals("P")) {
-            log.info("DATA_SRC="+a.getDataSrc()+", RGD:"+a.getAnnotatedObjectRgdId()+", "+a.getTermAcc() +" is an "+a.getEvidence()+ " annotation. It is restricted to Biological Process ontology" );
+            log.warn("*** "+a.getEvidence()+ " annotation skipped -- IEP/HEP annotations are restricted to Biological Process ontology" );
+            log.warn("   "+a.dump("|"));
             iepHep++;
             return null;
         }
