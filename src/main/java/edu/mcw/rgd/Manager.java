@@ -42,11 +42,12 @@ public class Manager {
         "!generated-by: RGD\n" +
         "!date-generated: ##DATE## \n" +
         "!\n" +
-        "!{ The gene_association.rgd file is available at the GO Consortium website (http://www.geneontology.org/page/download-go-annotations) "+
-            "and on RGD's FTP site (ftp://ftp.rgd.mcw.edu/pub/data_release/). The file and its contents follow the specifications laid out by the Consortium, "+
-            "currently GO Annotation File (GAF) Format 2.1 located at http://www.geneontology.org/page/go-annotation-file-gaf-format-21.  "+
+        "!{ The gene_association.rgd file is available at the GO Consortium website (http://geneontology.org/docs/download-go-annotations/) "+
+            "and on RGD's FTP site (https://download.rgd.mcw.edu/data_release/). The file and its contents follow the specifications laid out by the Consortium, "+
+            "currently GO Annotation File (GAF) Format 2.2 located at http://geneontology.org/docs/go-annotation-file-gaf-format-2.2/. "+
             "This requires that some details available for certain annotations on the RGD website and/or in other annotations files found on the RGD FTP site "+
             "must be excluded from this file in order to conform to the GOC guidelines and to correspond to GAF files from other groups. }\n" +
+        "!{ As of march 2021, the gene_association.rgd file is provided in gaf 2.2 format. }\n" +
         "!{ As of December 2016, the gene_association.rgd file only contains 'RGD' in column 1 and RGD gene identifiers in column 2. }\n" +
         "!{ As of March 2018, the gene_association.rgd file no longer includes identifiers for the original references (see below) for ISO annotations in column 6. "+
             "For ISO annotations, entries in column 6 will be limited to RGD:1624291, RGD's internal reference which explains the assignment of GO ISO annotations "+
@@ -386,7 +387,7 @@ public class Manager {
         // GO consortium rule GO:0000006
         //IEP and HEP annotations are restricted to terms from Biological Process ontology
         if((a.getEvidence().equals("IEP") || a.getEvidence().equals("HEP")) && !a.getAspect().equals("P")) {
-            log.info(a.getTermAcc() +" is an "+a.getEvidence()+ " annotation. It is restricted to Biological Process ontology" );
+            log.info("DATA_SRC="+a.getDataSrc()+", RGD:"+a.getAnnotatedObjectRgdId()+", "+a.getTermAcc() +" is an "+a.getEvidence()+ " annotation. It is restricted to Biological Process ontology" );
             iepHep++;
             return null;
         }

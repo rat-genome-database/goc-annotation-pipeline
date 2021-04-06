@@ -1,3 +1,6 @@
+Apr 06, 2021
+  improved summary email for annotations violating GO_RULE:0000006
+
 Mar 05, 2021
   generated files are in gaf 2.2 format
 
