@@ -68,6 +68,7 @@ public class Manager {
 
     SimpleDateFormat sdt = new SimpleDateFormat("yyyyMMdd");
     SimpleDateFormat headerDate = new SimpleDateFormat("yyyy-MM-dd");
+    String date11MonthAgo;
 
     private int notForCuration = 0;
     private int notGene = 0;
@@ -82,6 +83,11 @@ public class Manager {
     private int noQualifier = 0;
     private int uniProtKbReplacements = 0;
     private int geneProductFormIdCleared = 0;
+    private int rgdIdsInWithInfoReplaced = 0;
+    private int rgdIdsInWithInfoUnexpectedSpecies = 0;
+    private int rgdIdsInWithInfoMultipleSwissProt = 0;
+    private int ieaDateAdjusted = 0;
+    private int ieaDateAsIs = 0;
 
     Logger log = Logger.getLogger("core");
 
@@ -108,6 +114,13 @@ public class Manager {
         log.info("   " + dao.getConnectionInfo());
         SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         log.info("   started at "+sdt.format(new Date(startTime)));
+
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.DATE, -11*30); // date roughly 11 months ago
+        date11MonthAgo = formatDate(calendar.getTime());
+
 
         pmidMap = dao.loadPmidMap();
         handleGO(species, speciesTypeKey);
@@ -166,36 +179,55 @@ public class Manager {
         if( geneProductFormIdCleared!=0 ) {
             log.info("ISO annotations with cleared GENE_PRODUCT_FORM_ID field: " + geneProductFormIdCleared);
         }
-
-        BufferedReader br = Utils.openReader(getGoaFile());
-        String line;
-        while( null != (line = br.readLine())){
-
-            GoAnnotation goAnnotation = new GoAnnotation();
-            String[] tokens = line.split("[\\t]", -1);
-            if( tokens.length!=17 ) {
-                continue;
-            }
-            goAnnotation.setObjectId(tokens[1]);
-            goAnnotation.setObjectSymbol(tokens[2]);
-            goAnnotation.setQualifier(tokens[3]);
-            goAnnotation.setTermAcc(tokens[4]);
-            goAnnotation.setReferences(tokens[5]);
-            goAnnotation.setEvidence(tokens[6]);
-            goAnnotation.setWithInfo(tokens[7]);
-            goAnnotation.setAspect(tokens[8]);
-            goAnnotation.setObjectName(tokens[9]);
-            goAnnotation.setMeshOrOmimId(tokens[10]);
-            goAnnotation.setObjectType(tokens[11]);
-            goAnnotation.setTaxon(tokens[12]);
-            goAnnotation.setCreatedDate(tokens[13]);
-            goAnnotation.setDataSrc(tokens[14]);
-            goAnnotation.setAnnotExtension(tokens[15]);
-            goAnnotation.setGeneProductId(tokens[16]);
-
-            filteredList.add(goAnnotation);
+        if( rgdIdsInWithInfoReplaced!=0 ) {
+            log.info("ISO annotations with RGD IDs in WITH field replaced with MGI/SwissProt ids: " + rgdIdsInWithInfoReplaced);
         }
-        br.close();
+        if( rgdIdsInWithInfoUnexpectedSpecies!=0 ) {
+            log.info("ISO annotations with RGD IDs in WITH field has species other than mouse/human: " + rgdIdsInWithInfoUnexpectedSpecies);
+        }
+        if( rgdIdsInWithInfoMultipleSwissProt!=0 ) {
+            log.info("ISO annotations with RGD IDs in WITH field has multiple SwissPro mappings: " + rgdIdsInWithInfoMultipleSwissProt);
+        }
+        if( ieaDateAdjusted!=0 ) {
+            log.info("IEA annotations with CREATED_DATE adjusted: " + ieaDateAdjusted);
+        }
+        if( ieaDateAsIs!=0 ) {
+            log.info("IEA annotations with CREATED_DATE left as-is: " + ieaDateAsIs);
+        }
+
+        if( new File(getGoaFile()).exists() ) {
+            BufferedReader br = Utils.openReader(getGoaFile());
+            String line;
+            while (null != (line = br.readLine())) {
+
+                GoAnnotation goAnnotation = new GoAnnotation();
+                String[] tokens = line.split("[\\t]", -1);
+                if (tokens.length != 17) {
+                    continue;
+                }
+                goAnnotation.setObjectId(tokens[1]);
+                goAnnotation.setObjectSymbol(tokens[2]);
+                goAnnotation.setQualifier(tokens[3]);
+                goAnnotation.setTermAcc(tokens[4]);
+                goAnnotation.setReferences(tokens[5]);
+                goAnnotation.setEvidence(tokens[6]);
+                goAnnotation.setWithInfo(tokens[7]);
+                goAnnotation.setAspect(tokens[8]);
+                goAnnotation.setObjectName(tokens[9]);
+                goAnnotation.setMeshOrOmimId(tokens[10]);
+                goAnnotation.setObjectType(tokens[11]);
+                goAnnotation.setTaxon(tokens[12]);
+                goAnnotation.setCreatedDate(tokens[13]);
+                goAnnotation.setDataSrc(tokens[14]);
+                goAnnotation.setAnnotExtension(tokens[15]);
+                goAnnotation.setGeneProductId(tokens[16]);
+
+                filteredList.add(goAnnotation);
+            }
+            br.close();
+        } else {
+            log.warn("   WARNING: failed to find file "+getGoaFile());
+        }
 
         BufferedWriter bw = Utils.openWriter(getOutputFileProtein());
         bw.write(headerLines);
@@ -369,6 +401,8 @@ public class Manager {
             }
         }
 
+        rgdIdsInWithInfoReplaced += normalizeWithInfoForISO(goAnnotation, a);
+
         // GO consortium rule GO:0000002 and GO consortium rule GO:0000003 and GO:000005
         // "protein binding" annotation -- GO:0005515 -- must have evidence 'IPI' and non-null WITH field
         //"binding" annotation -- GO:0005488 -- must have evidence 'IPI' and non-null WITH field
@@ -455,17 +489,27 @@ public class Manager {
 
         // GO consortium rule GO:0000029:
         // IEA annotations over an year old should be removed.
+        Date createdDate = a.getOriginalCreatedDate();
+        if( createdDate==null ) {
+            createdDate = a.getCreatedDate();
+        }
+        String sCreatedDate = formatDate(createdDate);
         if( a.getTermAcc().startsWith("GO:") && a.getEvidence().equals("IEA") ) {
-            if( getRefRgdIdsForGoPipelines().contains(a.getRefRgdId()) ) {
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(new Date());
-                calendar.add(Calendar.DATE, -90); // created date should be 3 months back from the current date
-                goAnnotation.setCreatedDate(formatDate(calendar.getTime()));
+            if( Utils.stringsCompareTo(sCreatedDate, date11MonthAgo)<0 ) {
+                if( getRefRgdIdsForGoPipelines().contains(a.getRefRgdId()) ) {
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTime(new Date());
+                    calendar.add(Calendar.DATE, -90); // created date should be 3 months back from the current date
+                    goAnnotation.setCreatedDate(formatDate(calendar.getTime()));
+                } else {
+                    goAnnotation.setCreatedDate(formatDate(a.getLastModifiedDate()));
+                }
+                ieaDateAdjusted++;
             } else {
-                goAnnotation.setCreatedDate(formatDate(a.getLastModifiedDate()));
+                ieaDateAsIs++;
             }
         } else {
-            goAnnotation.setCreatedDate(formatDate(a.getCreatedDate()));
+            goAnnotation.setCreatedDate(formatDate(createdDate));
         }
 
         //DB Abbreviation Check for WormBase and UniProt
@@ -574,6 +618,76 @@ public class Manager {
         }
 
         return Utils.concatenate(refs, "|");
+    }
+
+    /// Apr 2021: if ISO annotation contains RGD id in WITH field, replace it with MGI id for mouse, and UniProt Swiss id for human
+    // return nr of ids replaced
+    int normalizeWithInfoForISO(GoAnnotation rec, Annotation a) throws Exception {
+        if( !(a.getEvidence().equals("ISO") && rec.getWithInfo().contains("RGD:")) ) {
+            return 0;
+        }
+
+        int replacedIds = 0;
+
+        // process all RGD IDs
+        String[] objIds = rec.getWithInfo().split("[\\|\\,]");
+        for( String objId: objIds ) {
+            if( !objId.startsWith("RGD:") ) {
+                continue;
+            }
+
+            // determine species: human or mouse
+            int rgdId = Integer.parseInt(objId.substring(4));
+            RgdId id = dao.getId(rgdId);
+            if( id.getSpeciesTypeKey()==SpeciesType.MOUSE ) {
+                List<XdbId> xdbIds = dao.getXdbIds(rgdId, XdbId.XDB_KEY_MGD);
+                if( xdbIds.isEmpty() ) {
+                    log.warn("  WARNING: cannot find MGI ID for RGD:"+rgdId);
+                    continue;
+                }
+                if( xdbIds.size()>1 ) {
+                    log.warn("  WARNING: multiple MGI IDs for RGD:"+rgdId);
+                } else {
+                    String mgiId = xdbIds.get(0).getAccId();
+                    rec.setWithInfo( rec.getWithInfo().replace(objId, mgiId));
+                    replacedIds++;
+                }
+            }
+            else if( id.getSpeciesTypeKey()==SpeciesType.HUMAN ) {
+                XdbId uniprotId = null;
+                List<XdbId> xdbIds = dao.getXdbIds(rgdId, XdbId.XDB_KEY_UNIPROT);
+                if( xdbIds.isEmpty() ) {
+                    log.warn("  WARNING: cannot find UNIPROT IDs for RGD:"+rgdId);
+                } else if( xdbIds.size()>1 ) {
+                    XdbId swissProtId = null;
+                    for( XdbId xdbId: xdbIds ) {
+                        if( Utils.defaultString(xdbId.getSrcPipeline()).contains("Swiss") ) {
+                            if( swissProtId == null ) {
+                                swissProtId = xdbId;
+                            } else {
+                                System.out.println("  WARNING: multiple SWISS PROT IDs for RGD:"+rgdId);
+                                rgdIdsInWithInfoMultipleSwissProt++;
+                            }
+                        }
+                    }
+                    uniprotId = swissProtId;
+                } else {
+                    uniprotId = xdbIds.get(0);
+                }
+
+                if( uniprotId!=null ) {
+                    String accId = uniprotId.getAccId();
+                    rec.setWithInfo( rec.getWithInfo().replace(objId, accId));
+                    replacedIds++;
+                }
+            }
+            else {
+                log.warn("   WARNING: unexpected species type for RGD:"+rgdId);
+                rgdIdsInWithInfoUnexpectedSpecies++;
+            }
+        }
+
+        return replacedIds;
     }
 
     void writeGeneAssociationsFile(Collection<GoAnnotation> annotations, String headerLines) throws Exception {

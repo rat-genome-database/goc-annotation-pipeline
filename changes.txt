@@ -1,3 +1,7 @@
+May 11, 2021
+  export original created date of annotation, if available
+  if ISO annotation contains RGD id in WITH field, replace it with MGI id for mouse, and UniProt Swiss id for human
+
 Apr 06, 2021
   improved summary email for annotations violating GO_RULE:0000006
 

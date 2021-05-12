@@ -1,7 +1,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.Manager">
-        <property name="version" value="GOC Annotation pipeline  -- build Apr 06, 2021" />
+        <property name="version" value="GOC Annotation pipeline  -- build May 11, 2021" />
         <property name="pipelineName" value="goc_annotation" />
         <property name="refRgdIdsForGoPipelines">
             <set>
@@ -52,6 +52,12 @@
                 <value>NOT|is_active_in</value>
                 <value>NOT|colocalizes_with</value>
             </set>
-        </property>
+        </property><!--
+        <property name="swissProtMappings">
+            <map>
+                <entry key="P02489" value="735272"/>
+                <entry key="A0A140G945" value="13440456"/>
+            </map>
+        </property>-->
     </bean>
 </beans>

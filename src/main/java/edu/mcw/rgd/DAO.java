@@ -2,6 +2,8 @@ package edu.mcw.rgd;
 
 import edu.mcw.rgd.dao.impl.*;
 import edu.mcw.rgd.dao.spring.IntStringMapQuery;
+import edu.mcw.rgd.datamodel.RgdId;
+import edu.mcw.rgd.datamodel.XdbId;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
 import org.apache.log4j.Logger;
 
@@ -18,6 +20,8 @@ public class DAO {
     AnnotationDAO adao = new AnnotationDAO();
     OntologyXDAO odao = new OntologyXDAO();
     ReferenceDAO rdao = new ReferenceDAO();
+    RGDManagementDAO idDao = new RGDManagementDAO();
+    XdbIdDAO xdbIdDAO = new XdbIdDAO();
 
     public String getConnectionInfo() {
         return adao.getConnectionInfo();
@@ -53,5 +57,13 @@ public class DAO {
         result.addAll(odao.getObsoleteTerms("MF"));
         result.addAll(odao.getObsoleteTerms("CC"));
         return result;
+    }
+
+    public RgdId getId(int rgdId) throws Exception {
+        return idDao.getRgdId2(rgdId);
+    }
+
+    public List<XdbId> getXdbIds(int rgdId, int xdbKey) throws Exception {
+        return xdbIdDAO.getXdbIdsByRgdId(xdbKey, rgdId);
     }
 }
