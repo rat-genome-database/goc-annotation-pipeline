@@ -1,3 +1,6 @@
+May 13, 2021
+  improved logging
+
 May 11, 2021
   export original created date of annotation, if available
   if ISO annotation contains RGD id in WITH field, replace it with MGI id for mouse, and UniProt Swiss id for human

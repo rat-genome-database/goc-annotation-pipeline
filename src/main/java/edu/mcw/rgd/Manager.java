@@ -3,6 +3,7 @@ package edu.mcw.rgd;
 import edu.mcw.rgd.datamodel.*;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
 import edu.mcw.rgd.datamodel.ontologyx.Aspect;
+import edu.mcw.rgd.process.CounterPool;
 import edu.mcw.rgd.process.Utils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -90,6 +91,7 @@ public class Manager {
     private int ieaDateAsIs = 0;
 
     Logger log = Logger.getLogger("core");
+    Logger logWarnings = Logger.getLogger("warnings");
 
     public static void main(String[] args) throws Exception {
 
@@ -124,6 +126,8 @@ public class Manager {
 
         pmidMap = dao.loadPmidMap();
         handleGO(species, speciesTypeKey);
+
+        dumpWarnings();
 
         log.info("END:  time elapsed: " + Utils.formatElapsedTime(startTime, System.currentTimeMillis()));
         log.info("===");
@@ -440,7 +444,7 @@ public class Manager {
         //Check for Not4Curation Go terms
         if( !dao.isForCuration(a.getTermAcc()) ) {
             notForCuration++;
-            log.info(" term "+a.getTerm()+" is Not4Curation! annotation skipped" );
+            logWarning(" term "+a.getTerm()+" is Not4Curation! annotation skipped" );
             return null;
         }
 
@@ -642,11 +646,11 @@ public class Manager {
             if( id.getSpeciesTypeKey()==SpeciesType.MOUSE ) {
                 List<XdbId> xdbIds = dao.getXdbIds(rgdId, XdbId.XDB_KEY_MGD);
                 if( xdbIds.isEmpty() ) {
-                    log.warn("  WARNING: cannot find MGI ID for RGD:"+rgdId);
+                    logWarning("  WARNING: cannot find MGI ID for RGD:"+rgdId);
                     continue;
                 }
                 if( xdbIds.size()>1 ) {
-                    log.warn("  WARNING: multiple MGI IDs for RGD:"+rgdId);
+                    logWarning("  WARNING: multiple MGI IDs for RGD:"+rgdId);
                 } else {
                     String mgiId = xdbIds.get(0).getAccId();
                     rec.setWithInfo( rec.getWithInfo().replace(objId, mgiId));
@@ -657,7 +661,7 @@ public class Manager {
                 XdbId uniprotId = null;
                 List<XdbId> xdbIds = dao.getXdbIds(rgdId, XdbId.XDB_KEY_UNIPROT);
                 if( xdbIds.isEmpty() ) {
-                    log.warn("  WARNING: cannot find UNIPROT IDs for RGD:"+rgdId);
+                    logWarning("  WARNING: cannot find UNIPROT IDs for RGD:"+rgdId);
                 } else if( xdbIds.size()>1 ) {
                     XdbId swissProtId = null;
                     for( XdbId xdbId: xdbIds ) {
@@ -665,7 +669,7 @@ public class Manager {
                             if( swissProtId == null ) {
                                 swissProtId = xdbId;
                             } else {
-                                System.out.println("  WARNING: multiple SWISS PROT IDs for RGD:"+rgdId);
+                                logWarning("  WARNING: multiple SWISS PROT IDs for RGD:"+rgdId);
                                 rgdIdsInWithInfoMultipleSwissProt++;
                             }
                         }
@@ -682,7 +686,7 @@ public class Manager {
                 }
             }
             else {
-                log.warn("   WARNING: unexpected species type for RGD:"+rgdId);
+                logWarning("   WARNING: unexpected species type for RGD:"+rgdId);
                 rgdIdsInWithInfoUnexpectedSpecies++;
             }
         }
@@ -797,6 +801,17 @@ public class Manager {
     public String checkNull(String str) {
         return str==null ? "" : str.trim();
     }
+
+
+    CounterPool warnings = new CounterPool();
+    void logWarning(String msg) {
+        warnings.increment(msg);
+    }
+
+    void dumpWarnings() {
+        logWarnings.debug(warnings.dumpAlphabetically());
+    }
+
     public void setVersion(String version) {
         this.version = version;
     }
