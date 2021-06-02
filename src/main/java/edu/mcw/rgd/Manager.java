@@ -227,6 +227,10 @@ public class Manager {
                 goAnnotation.setGeneProductId(tokens[16]);
 
                 filteredList.add(goAnnotation);
+
+                if( Utils.isStringEmpty(goAnnotation.getCreatedDate()) ) {
+                    throw new Exception("EMPTY CREATED DATE: "+line);
+                }
             }
             br.close();
         } else {
@@ -498,6 +502,8 @@ public class Manager {
             createdDate = a.getCreatedDate();
         }
         String sCreatedDate = formatDate(createdDate);
+        goAnnotation.setCreatedDate(sCreatedDate);
+
         if( a.getTermAcc().startsWith("GO:") && a.getEvidence().equals("IEA") ) {
             if( Utils.stringsCompareTo(sCreatedDate, date11MonthAgo)<0 ) {
                 if( getRefRgdIdsForGoPipelines().contains(a.getRefRgdId()) ) {
@@ -512,8 +518,9 @@ public class Manager {
             } else {
                 ieaDateAsIs++;
             }
-        } else {
-            goAnnotation.setCreatedDate(formatDate(createdDate));
+        }
+        if( Utils.isStringEmpty(goAnnotation.getCreatedDate()) ) {
+            throw new Exception("EMPTY CREATED DATE");
         }
 
         //DB Abbreviation Check for WormBase and UniProt
@@ -710,6 +717,10 @@ public class Manager {
     }
 
     void writeLine(BufferedWriter writer, GoAnnotation rec) throws Exception{
+
+        if( Utils.isStringEmpty(rec.getCreatedDate()) ) {
+            throw new Exception("EMPTY CREATED DATE");
+        }
 
         // column contents must comply with GAF 2.0 format
         writer.append("RGD")

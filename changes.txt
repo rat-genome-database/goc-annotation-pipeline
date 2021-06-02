@@ -1,3 +1,6 @@
+Jun 02, 2021
+  fixed bug with export of created date
+
 May 13, 2021
   improved logging
 
