@@ -687,7 +687,7 @@ public class Manager {
                 }
 
                 if( uniprotId!=null ) {
-                    String accId = uniprotId.getAccId();
+                    String accId = "UniProtKB:"+uniprotId.getAccId();
                     rec.setWithInfo( rec.getWithInfo().replace(objId, accId));
                     replacedIds++;
                 }

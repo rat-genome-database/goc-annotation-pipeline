@@ -1,5 +1,6 @@
 Jun 02, 2021
   fixed bug with export of created date
+  fixed code to replace RGD Ids with UniProtKB ids in ITH_INFO field
 
 May 13, 2021
   improved logging
