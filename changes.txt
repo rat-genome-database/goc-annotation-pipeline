@@ -1,3 +1,6 @@
+Jan 07, 2021
+  updated log4j to avoid zero day exploit
+
 Jun 02, 2021
   fixed bug with export of created date
   fixed code to replace RGD Ids with UniProtKB ids in ITH_INFO field

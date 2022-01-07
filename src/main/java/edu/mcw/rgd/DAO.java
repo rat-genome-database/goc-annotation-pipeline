@@ -5,7 +5,8 @@ import edu.mcw.rgd.dao.spring.IntStringMapQuery;
 import edu.mcw.rgd.datamodel.RgdId;
 import edu.mcw.rgd.datamodel.XdbId;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
@@ -41,7 +42,7 @@ public class DAO {
         for (IntStringMapQuery.MapPair pair : pmidList) {
             String pmid = pmidMap.put(pair.keyValue, pair.stringValue);
             if( pmid != null ) {
-                Logger log = Logger.getLogger("core");
+                Logger log = LogManager.getLogger("core");
                 log.warn("WARNING! multiple PMIDs for REF_RGD_ID:"+pair.keyValue+", PMID:"+pmid);
             }
         }

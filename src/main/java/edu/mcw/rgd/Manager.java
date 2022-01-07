@@ -5,7 +5,8 @@ import edu.mcw.rgd.datamodel.ontology.Annotation;
 import edu.mcw.rgd.datamodel.ontologyx.Aspect;
 import edu.mcw.rgd.process.CounterPool;
 import edu.mcw.rgd.process.Utils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.FileSystemResource;
@@ -90,8 +91,8 @@ public class Manager {
     private int ieaDateAdjusted = 0;
     private int ieaDateAsIs = 0;
 
-    Logger log = Logger.getLogger("core");
-    Logger logWarnings = Logger.getLogger("warnings");
+    Logger log = LogManager.getLogger("core");
+    Logger logWarnings = LogManager.getLogger("warnings");
 
     public static void main(String[] args) throws Exception {
 
