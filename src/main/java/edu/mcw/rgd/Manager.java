@@ -80,7 +80,9 @@ public class Manager {
     private int ipiInCatalytic = 0;
     private int iepHep = 0;
     private int ndAnnotations = 0;
-    private int icIpiIda = 0;
+    private int idaWithWith = 0;
+    private int icWithoutWith = 0;
+    private int ipiWithoutWith = 0;
     private int badQualifier = 0;
     private int noQualifier = 0;
     private int uniProtKbReplacements = 0;
@@ -169,7 +171,9 @@ public class Manager {
         log.info("IEP and HEP Annotations to MF and CC Ontology: " + iepHep );
         log.info("No Data (ND) evidence code Annotations: " + ndAnnotations );
         log.info("IPI Annotations to Catalytic Terms: " + ipiInCatalytic );
-        log.info("IC,IPI,IDA Annotations violating WITH field rule: " + icIpiIda  );
+        log.info("GORULE:0000016 violations: IC annotations must have a WITH field:" + icWithoutWith );
+        log.info("GORULE:0000017 violations: IDA annotations must not have WITH field: " + idaWithWith );
+        log.info("GORULE:0000018 violations: IPI annotations must have a WITH field:" + ipiWithoutWith );
         log.info("IBA annotations from other sources: "+ ibaAnnot );
         log.info("IPI annotations to root terms with null WITH field: " + ipiAnnot  );
         if( badQualifier!=0 ) {
@@ -485,12 +489,27 @@ public class Manager {
             }
         }
 
-        // GO consortium rule GO:0000016 and GO:0000017 and GO:0000018
-        // IC and IPI annotations require a WITH field and IDA must not have a WITH field
-        if( ((a.getEvidence().equals("IC") || (a.getEvidence().equals("IPI"))) && goAnnotation.withInfo.length()==0 ) ||
-                (a.getEvidence().equals("IDA") && goAnnotation.getWithInfo().length()!=0 ) ) {
-            log.info("Annotation to term "+a.getTermAcc() + " failed rule: IC and IPI annotations require a WITH field and IDA must not have a WITH field ");
-            icIpiIda++;
+        // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000016.md
+        // IC annotations require a WITH field
+        if( a.getEvidence().equals("IC") && goAnnotation.withInfo.length()==0 ) {
+            log.info("Annotation to RGD:"+a.getAnnotatedObjectRgdId()+" and term "+a.getTermAcc() + " failed GORULE:0000016: IC annotations require a WITH field");
+            icWithoutWith++;
+            return null;
+        }
+
+        // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000017.md
+        // IDA annotations must not have a With/From entry; When there is an appropriate ID for the "With/From" column, use IPI.
+        if( a.getEvidence().equals("IDA") && goAnnotation.getWithInfo().length()!=0 ) {
+            log.info("Annotation to RGD:"+a.getAnnotatedObjectRgdId()+" and term "+a.getTermAcc() + " failed GORULE:0000017: IDA annotations must not have a With/From entry; use IPI code instead");
+            idaWithWith++;
+            return null;
+        }
+
+        // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000018.md
+        // IPI annotations require a With/From entry
+        if( a.getEvidence().equals("IPI") && goAnnotation.withInfo.length()==0 ) {
+            log.info("Annotation to RGD:"+a.getAnnotatedObjectRgdId()+" and term "+a.getTermAcc() + " failed GORULE:0000018: IPI annotations require a WITH field");
+            ipiWithoutWith++;
             return null;
         }
 

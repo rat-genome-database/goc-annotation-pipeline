@@ -1,4 +1,7 @@
-Jan 07, 2021
+Mar 28, 2022
+  improved reporting of violations of GORULE:0000016, GORULE:0000017 and GORULE:0000018
+
+Jan 07, 2022
   updated log4j to avoid zero day exploit
 
 Jun 02, 2021
