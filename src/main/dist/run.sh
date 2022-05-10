@@ -9,7 +9,7 @@ else
   EMAILLIST=mtutaj@mcw.edu,hsnalabolu@mcw.edu
 fi
 
-APPNAME=goc_annotation
+APPNAME=goc-annotation-pipeline
 APPDIR=/home/rgddata/pipelines/$APPNAME
 APPDATADIR=$APPDIR/data
 FTP_UPLOAD_DIR=/home/rgddata/data_release

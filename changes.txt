@@ -1,3 +1,6 @@
+May 10, 2022
+  renamed distro to 'goc-annotation-pipeline' from 'goc_annotation'
+
 Apr 18, 2022
   improved logging
 
