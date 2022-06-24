@@ -1,3 +1,6 @@
+Jun 24, 2022
+  updated location of goa_rat.txt
+
 May 10, 2022
   renamed distro to 'goc-annotation-pipeline' from 'goc_annotation'
 
