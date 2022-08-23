@@ -1,3 +1,6 @@
+Aug 23, 2022
+  dependency update
+
 Jun 24, 2022
   updated location of goa_rat.txt
 
