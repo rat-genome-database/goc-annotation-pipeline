@@ -1,5 +1,5 @@
 Aug 23, 2022
-  dependency update
+  fixed typo in a log file
 
 Jun 24, 2022
   updated location of goa_rat.txt
