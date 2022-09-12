@@ -492,7 +492,7 @@ public class Manager {
         // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000016.md
         // IC annotations require a WITH field
         if( a.getEvidence().equals("IC") && goAnnotation.withInfo.length()==0 ) {
-            log.info("Annotation to RGD:"+a.getAnnotatedObjectRgdId()+" and term "+a.getTermAcc() + " failed GORULE:0000016: IC annotations require a WITH field");
+            log.info("Annot to RGD:"+a.getAnnotatedObjectRgdId()+", "+a.getTermAcc() + ", SRC="+a.getDataSrc()+" failed GORULE:0000016: IC annotations require a WITH field");
             icWithoutWith++;
             return null;
         }
@@ -500,7 +500,7 @@ public class Manager {
         // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000017.md
         // IDA annotations must not have a With/From entry; When there is an appropriate ID for the "With/From" column, use IPI.
         if( a.getEvidence().equals("IDA") && goAnnotation.getWithInfo().length()!=0 ) {
-            log.info("Annotation to RGD:"+a.getAnnotatedObjectRgdId()+" and term "+a.getTermAcc() + " failed GORULE:0000017: IDA annotations must not have a With/From entry; use IPI code instead");
+            log.info("Annot to RGD:"+a.getAnnotatedObjectRgdId()+", "+a.getTermAcc() + ", SRC="+a.getDataSrc()+" failed GORULE:0000017: IDA annotations must not have a With/From entry; use IPI code instead");
             idaWithWith++;
             return null;
         }
@@ -508,7 +508,7 @@ public class Manager {
         // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000018.md
         // IPI annotations require a With/From entry
         if( a.getEvidence().equals("IPI") && goAnnotation.withInfo.length()==0 ) {
-            log.info("Annotation to RGD:"+a.getAnnotatedObjectRgdId()+" and term "+a.getTermAcc() + " failed GORULE:0000018: IPI annotations require a WITH field");
+            log.info("Annot to RGD:"+a.getAnnotatedObjectRgdId()+", "+a.getTermAcc() + ", SRC="+a.getDataSrc()+" failed GORULE:0000018: IPI annotations require a WITH field");
             ipiWithoutWith++;
             return null;
         }
