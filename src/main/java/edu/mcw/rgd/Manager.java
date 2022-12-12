@@ -95,6 +95,7 @@ public class Manager {
 
     Logger log = LogManager.getLogger("core");
     Logger logWarnings = LogManager.getLogger("warnings");
+    Logger logRejected = LogManager.getLogger("rejected_annots");
 
     public static void main(String[] args) throws Exception {
 
@@ -165,10 +166,10 @@ public class Manager {
         log.info("=====");
         log.info("Total Number of GO Annotations in RGD: " + annotations.size());
         log.info("Total Number of Annotations Sent to GO from RGD: " + filteredList.size());
-        log.info("Annotations to Obsolete terms: " + obsolete );
-        log.info("NotForCuration Annotations: " + notForCuration );
-        log.info("Not gene Annotations: " + notGene );
-        log.info("IEP and HEP Annotations to MF and CC Ontology: " + iepHep );
+        log.info(" Annotations to Obsolete terms: " + obsolete );
+        log.info(" NotForCuration Annotations: " + notForCuration );
+        log.info(" Not gene Annotations: " + notGene );
+        log.info("*** IEP and HEP Annotations to MF and CC Ontology (rejected): " + iepHep );
         log.info("No Data (ND) evidence code Annotations: " + ndAnnotations );
         log.info("IPI Annotations to Catalytic Terms: " + ipiInCatalytic );
         log.info("GORULE:0000016 violations: IC annotations must have a WITH field:" + icWithoutWith );
@@ -432,11 +433,12 @@ public class Manager {
 
         }
 
-        // GO consortium rule GO:0000006
-        //IEP and HEP annotations are restricted to terms from Biological Process ontology
+        // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000006.md
+        // IEP and HEP annotations are restricted to terms from Biological Process ontology
+        // (reviewed on Dec 12, 2022)
         if((a.getEvidence().equals("IEP") || a.getEvidence().equals("HEP")) && !a.getAspect().equals("P")) {
-            log.warn("*** "+a.getEvidence()+ " annotation skipped -- IEP/HEP annotations are restricted to Biological Process ontology" );
-            log.warn("   "+a.dump("|"));
+            logRejected.debug("GORULE:0000006> "+a.getEvidence()+ " annotation skipped -- IEP/HEP annotations are restricted to Biological Process ontology"
+                +"\n   "+a.dump("|"));
             iepHep++;
             return null;
         }
