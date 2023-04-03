@@ -1,3 +1,6 @@
+Apr 03, 2023
+  updated dependencies
+
 Dec 12, 2022
   logging: added new log 'rejected_annots' to log all annotations rejected due to violations of GORULEs
            (currently only annotations violating GORULE:0000006 go into that file to avoid spamming the summary email)
