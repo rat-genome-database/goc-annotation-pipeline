@@ -1,3 +1,7 @@
+Jan 22, 2024
+  updated to java 17
+  removed 'colocalizes_with' from the list of allowed qualifiers
+
 Apr 03, 2023
   updated dependencies
 
