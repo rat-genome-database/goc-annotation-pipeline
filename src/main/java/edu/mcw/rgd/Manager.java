@@ -37,36 +37,37 @@ public class Manager {
 
     private List<String> catalyticTerms;
     private List<String> obsoleteTerms;
+    private GpiGenerator gpiGenerator;
     static private Map<Integer, String> pmidMap;
 
-    final String HEADER_COMMON_LINES =
-        "!gaf-version: 2.2\n" +
-        "!generated-by: RGD\n" +
-        "!date-generated: ##DATE## \n" +
-        "!\n" +
-        "!{ The gene_association.rgd file is available at the GO Consortium website (http://geneontology.org/docs/download-go-annotations/) "+
-            "and on RGD's FTP site (https://download.rgd.mcw.edu/data_release/). The file and its contents follow the specifications laid out by the Consortium, "+
-            "currently GO Annotation File (GAF) Format 2.2 located at http://geneontology.org/docs/go-annotation-file-gaf-format-2.2/. "+
-            "This requires that some details available for certain annotations on the RGD website and/or in other annotations files found on the RGD FTP site "+
-            "must be excluded from this file in order to conform to the GOC guidelines and to correspond to GAF files from other groups. }\n" +
-        "!{ As of march 2021, the gene_association.rgd file is provided in gaf 2.2 format. }\n" +
-        "!{ As of December 2016, the gene_association.rgd file only contains 'RGD' in column 1 and RGD gene identifiers in column 2. }\n" +
-        "!{ As of March 2018, the gene_association.rgd file no longer includes identifiers for the original references (see below) for ISO annotations in column 6. "+
-            "For ISO annotations, entries in column 6 will be limited to RGD:1624291, RGD's internal reference which explains the assignment of GO ISO annotations "+
-            "to rat genes. }\n" +
-        "!{ The gene_protein_association.rgd file (available on the RGD ftp site at https://download.rgd.mcw.edu/data_release/) contains both RGD gene "+
-            "and UniProt protein IDs in columns 1/2. The gene_protein_association.rgd file also includes original reference IDs for rat ISO annotations, "+
-            "as well as the ID for RGD's internal reference which explains the assignment of GO ISO annotations to rat genes.  \"Original reference\" refers to "+
-            "the identifier(s), such as PMIDs and/or other database IDs for the references used to assign GO annotations to genes or proteins in other species "+
-            "which are then inferred to rat genes by orthology. }\n" +
-        "!{ Additional annotation files can be found on RGD's ftp site in the https://download.rgd.mcw.edu/data_release/annotated_rgd_objects_by_ontology/ directory "+
-            "and its \"with_terms\" subdirectory (ftp://ftp.rgd.mcw.edu/pub/data_release/annotated_rgd_objects_by_ontology/with_terms/). "+
-            "The annotated_rgd_objects_by_ontology directory contains GAF-formatted files for all of RGD's ontology annotations, that is, annotations for all of "+
-            "the ontologies that RGD uses for all annotated objects from all of the species in RGD.  Files in the \"with_terms\" subdirectory contain the same data "+
-            "with the addition of ontology terms for human-readability as well as additional information in the form of curator notes. }\n" +
-        "!{ For additional information about the file formats for files in the annotated_rgd_objects_by_ontology/ directory and it's \"with_terms\" subdirectory "+
-            "see the README files at https://download.rgd.mcw.edu/data_release/annotated_rgd_objects_by_ontology/README and "+
-            "https://download.rgd.mcw.edu/data_release/annotated_rgd_objects_by_ontology/with_terms/WITHTERMS_README. }\n";
+    final String HEADER_COMMON_LINES = """
+        !gaf-version: 2.2
+        !generated-by: RGD
+        !date-generated: ##DATE##
+        !
+        !{ The gene_association.rgd file is available at the GO Consortium website (https://geneontology.org/docs/download-go-annotations/) }
+        !{ and on RGD's FTP site (https://download.rgd.mcw.edu/data_release/). The file and its contents follow the specifications laid out by the Consortium, }
+        !{ currently GO Annotation File (GAF) Format 2.2 located at https://geneontology.org/docs/go-annotation-file-gaf-format-2.2/. }
+        !{ This requires that some details available for certain annotations on the RGD website and/or in other annotations files found on the RGD FTP site }
+        !{ must be excluded from this file in order to conform to the GOC guidelines and to correspond to GAF files from other groups. }
+        !{ As of March 2021, the gene_association.rgd file is provided in gaf 2.2 format. }
+        !{ As of December 2016, the gene_association.rgd file only contains 'RGD' in column 1 and RGD gene identifiers in column 2. }
+        !{ As of March 2018, the gene_association.rgd file no longer includes identifiers for the original references (see below) for ISO annotations in column 6. }
+        !{ For ISO annotations, entries in column 6 will be limited to RGD:1624291, RGD's internal reference which explains the assignment of GO ISO annotations to rat genes. }
+        !{ The gene_protein_association.rgd file (available on the RGD ftp site at https://download.rgd.mcw.edu/data_release/) contains both RGD gene }
+        !{ and UniProt protein IDs in columns 1/2. The gene_protein_association.rgd file also includes original reference IDs for rat ISO annotations, }
+        !{ as well as the ID for RGD's internal reference which explains the assignment of GO ISO annotations to rat genes.  "Original reference" refers to }
+        !{ the identifier(s), such as PMIDs and/or other database IDs for the references used to assign GO annotations to genes or proteins in other species }
+        !{ which are then inferred to rat genes by orthology. }
+        !{ Additional annotation files can be found on RGD's ftp site in the https://download.rgd.mcw.edu/data_release/annotated_rgd_objects_by_ontology/ directory }
+        !{ and its "with_terms" subdirectory (https://download.rgd.mcw.edu/data_release/annotated_rgd_objects_by_ontology/with_terms/). }
+        !{ The annotated_rgd_objects_by_ontology directory contains GAF-formatted files for all of RGD's ontology annotations, that is, annotations for all of }
+        !{ the ontologies that RGD uses for all annotated objects from all of the species in RGD.  Files in the "with_terms" subdirectory contain the same data }
+        !{ with the addition of ontology terms for human-readability as well as additional information in the form of curator notes. }
+        !{ For additional information about the file formats for files in the annotated_rgd_objects_by_ontology/ directory and it's "with_terms" subdirectory }
+        !{ see the README files at https://download.rgd.mcw.edu/data_release/annotated_rgd_objects_by_ontology/README and }
+        !{ https://download.rgd.mcw.edu/data_release/annotated_rgd_objects_by_ontology/with_terms/WITHTERMS_README. }
+        """;
 
     SimpleDateFormat sdt = new SimpleDateFormat("yyyyMMdd");
     SimpleDateFormat headerDate = new SimpleDateFormat("yyyy-MM-dd");
@@ -103,8 +104,19 @@ public class Manager {
         new XmlBeanDefinitionReader(bf).loadBeanDefinitions(new FileSystemResource("properties/AppConfigure.xml"));
         Manager manager = (Manager) (bf.getBean("manager"));
 
+        boolean generateGpiFile = false;
+        for( String arg: args ) {
+            if( arg.equals("--generateGpiFile") ) {
+                generateGpiFile = true;
+            }
+        }
+
         try {
-            manager.run(SpeciesType.RAT);
+            if( generateGpiFile ) {
+                manager.getGpiGenerator().run(manager.log, manager.dao);
+            } else {
+                manager.run(SpeciesType.RAT);
+            }
         } catch (Exception e) {
             Utils.printStackTrace(e, manager.log);
             throw e;
@@ -923,6 +935,14 @@ public class Manager {
 
     public void setAllowedQualifiersForCC(Set<String> allowedQualifiersForCC) {
         this.allowedQualifiersForCC = allowedQualifiersForCC;
+    }
+
+    public GpiGenerator getGpiGenerator() {
+        return gpiGenerator;
+    }
+
+    public void setGpiGenerator(GpiGenerator gpiGenerator) {
+        this.gpiGenerator = gpiGenerator;
     }
 }
 
