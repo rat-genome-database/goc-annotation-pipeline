@@ -4,9 +4,9 @@
 set -e
 SERVER=`hostname -s | tr '[a-z]' '[A-Z]'`
 if [ "$SERVER" == "REED" ]; then
-  EMAILLIST=jrsmith@mcw.edu,mtutaj@mcw.edu,hsnalabolu@mcw.edu
+  EMAILLIST=jrsmith@mcw.edu,mtutaj@mcw.edu
 else
-  EMAILLIST=mtutaj@mcw.edu,hsnalabolu@mcw.edu
+  EMAILLIST=mtutaj@mcw.edu
 fi
 
 APPNAME=goc-annotation-pipeline
