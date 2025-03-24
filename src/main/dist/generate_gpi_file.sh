@@ -17,7 +17,7 @@ DATE_EXT=`date +%Y%m%d`
 FILENAME=rgd.gpi
 
 echo "=== Archive the old file in data directory  ==="
-cp $APPDATADIR/$FILENAME $APPDATADIR/$FILENAME.$DATE_EXT
+cp -p $APPDATADIR/$FILENAME $APPDATADIR/$FILENAME.$DATE_EXT
 
 cd $APPDIR
 
@@ -30,4 +30,4 @@ mailx -s "[$SERVER] GPI pipeline - Summary Report " $EMAILLIST<logs/summary.log
 
 
 echo "=== Copy the file to FTP directory  ==="
-cp $FILENAME.gz $FTP_UPLOAD_DIR
+cp -p $FILENAME $FTP_UPLOAD_DIR
