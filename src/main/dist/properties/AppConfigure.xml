@@ -1,7 +1,8 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.Manager">
-        <property name="version" value="GOC Annotation pipeline  -- build Jan 22, 2024" />
+        <property name="version" value="GOC Annotation pipeline  -- build Mar 24, 2025" />
+        <property name="gpiGenerator" ref="gpiGenerator"/>
         <property name="pipelineName" value="goc_annotation" />
         <property name="refRgdIdsForGoPipelines">
             <set>
@@ -57,5 +58,9 @@
                 <entry key="A0A140G945" value="13440456"/>
             </map>
         </property>-->
+    </bean>
+
+    <bean id="gpiGenerator" class="edu.mcw.rgd.GpiGenerator">
+        <property name="outputFile" value="data/rgd.gpi" />
     </bean>
 </beans>
