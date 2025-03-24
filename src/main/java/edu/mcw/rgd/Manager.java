@@ -1,5 +1,6 @@
 package edu.mcw.rgd;
 
+import edu.mcw.rgd.dao.impl.AnnotationDAO;
 import edu.mcw.rgd.datamodel.*;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
 import edu.mcw.rgd.datamodel.ontologyx.Aspect;
@@ -272,6 +273,10 @@ public class Manager {
         annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey, Aspect.MOLECULAR_FUNCTION));
         annotations.addAll(dao.getAnnotationsBySpecies(speciesTypeKey, Aspect.CELLULAR_COMPONENT));
 
+        // dbg
+        //AnnotationDAO aadao = new AnnotationDAO();
+        //annotations.addAll(aadao.getAnnotations(1559763, "GO:0000398"));
+
         catalyticTerms = dao.getAllActiveTermDescandantAccIds("GO:0003824");
         obsoleteTerms = dao.getObsoleteTermsForGO();
 
@@ -409,23 +414,7 @@ public class Manager {
 
         // check for Pub Med id in this field, if it exists tack it on to the dbReference field
         // Remove WithInfo for evidence Codes IDA,NAS,ND and TAS
-        goAnnotation.setWithInfo(a.getWithInfo());
-        if ( goAnnotation.getWithInfo() == null) {
-            goAnnotation.setWithInfo("");
-        } else {
-            if ( goAnnotation.getWithInfo().contains("PMID:") ) {
-                if( goAnnotation.getReferences().length()>0 )
-                    goAnnotation.setReferences(goAnnotation.getReferences() +  '|');
-                goAnnotation.setReferences(goAnnotation.getReferences()+goAnnotation.withInfo);
-            }
-
-            if ( a.getEvidence().equals("IDA") || a.getEvidence().equals("NAS") || a.getEvidence().equals("ND") || a.getEvidence().equals("TAS") ) {
-                goAnnotation.setWithInfo("");
-            }
-            else {
-                goAnnotation.setWithInfo(goAnnotation.getWithInfo().trim());
-            }
-        }
+        validateWithInfo( goAnnotation, a );
 
         rgdIdsInWithInfoReplaced += normalizeWithInfoForISO(goAnnotation, a);
 
@@ -530,7 +519,7 @@ public class Manager {
 
 
         // GO consortium rule GO:0000029:
-        // IEA annotations over an year old should be removed.
+        // IEA annotations over a year old should be removed.
         Date createdDate = a.getOriginalCreatedDate();
         if( createdDate==null ) {
             createdDate = a.getCreatedDate();
@@ -593,6 +582,46 @@ public class Manager {
         return goAnnotation;
     }
 
+    void validateWithInfo( GoAnnotation goAnnotation, Annotation a ) {
+
+        goAnnotation.setWithInfo(a.getWithInfo());
+        if ( goAnnotation.getWithInfo() == null) {
+            goAnnotation.setWithInfo("");
+        } else {
+            if ( goAnnotation.getWithInfo().contains("PMID:") ) {
+                if( goAnnotation.getReferences().length()>0 )
+                    goAnnotation.setReferences(goAnnotation.getReferences() +  '|');
+                goAnnotation.setReferences(goAnnotation.getReferences()+goAnnotation.withInfo);
+            }
+
+            if ( a.getEvidence().equals("IDA") || a.getEvidence().equals("NAS") || a.getEvidence().equals("ND") || a.getEvidence().equals("TAS") ) {
+                goAnnotation.setWithInfo("");
+            }
+            else {
+                goAnnotation.setWithInfo( validateWithInfo(goAnnotation.getWithInfo(), a) );
+            }
+        }
+    }
+
+    String validateWithInfo( String withInfo, Annotation a ) {
+
+        withInfo = withInfo.trim();
+        if( withInfo.isEmpty() ) {
+            return withInfo;
+        }
+
+        // it could be empty, or '|'-separated; one of [DB:gene_symbol, DB:gene_id, DB:protein_name, DB:sequence_id, GO:GO_id, CHEBI:CHEBI_id]
+        // LOGIC: we ensure, that all '|'-separated parts have ':'-separated parts, if not, we supply 'RGD:'
+        String[] parts = withInfo.split("[\\|]");
+        for( int i=0; i<parts.length; i++ ) {
+            if( parts[i].indexOf(':')<0 ) {
+                parts[i] = "RGD:"+parts[i].trim();
+                log.warn("*** WARNING! unexpected with_info ["+withInfo+"] for RGD:"+a.getAnnotatedObjectRgdId()+", "+a.getEvidence()+", "+a.getTermAcc());
+            }
+        }
+        return Utils.concatenate(parts, "|");
+    }
+
     private boolean qcQualifier(Annotation a) {
         //GO consortium rule GO:0000001
         if( Utils.isStringEmpty(a.getQualifier()) ) {
@@ -630,6 +659,7 @@ public class Manager {
             }
             if( !allowedQualifiers.contains(a.getQualifier()) ) {
                 log.warn("*** RGD:"+a.getAnnotatedObjectRgdId()+" "+a.getTermAcc()+": qualifier "+ a.getQualifier() + " violates gorule 0000001: Annotation skipped");
+                log.warn("*** allowed qualifiers: ["+Utils.concatenate(allowedQualifiers, ", ")+"]");
                 badQualifier++;
                 return false;
             }
