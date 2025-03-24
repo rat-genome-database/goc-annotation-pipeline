@@ -94,7 +94,21 @@ public class GpiGenerator {
             }
         }
 
-        Collections.sort(lines);
+        // sort by RGD ID from 1st column
+        Collections.sort(lines, new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+
+                // RGD:10045415    Kantr ...
+                int tabPos = o1.indexOf('\t');
+                int rgdId1 = Integer.parseInt(o1.substring(4, tabPos));
+
+                tabPos = o2.indexOf('\t');
+                int rgdId2 = Integer.parseInt(o2.substring(4, tabPos));
+
+                return rgdId1 - rgdId2;
+            }
+        });
 
         for( String line: lines ) {
             out.write(line);
