@@ -1,7 +1,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.Manager">
-        <property name="version" value="GOC Annotation pipeline  -- build Mar 18, 2025" />
+        <property name="version" value="GOC Annotation pipeline  -- build Mar 24, 2025" />
         <property name="gpiGenerator" ref="gpiGenerator"/>
         <property name="pipelineName" value="goc_annotation" />
         <property name="refRgdIdsForGoPipelines">

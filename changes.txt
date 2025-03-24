@@ -1,3 +1,6 @@
+Mar 24, 2025
+  added generation of GPI file for rat
+
 Jan 22, 2024
   updated to java 17
   removed 'colocalizes_with' from the list of allowed qualifiers

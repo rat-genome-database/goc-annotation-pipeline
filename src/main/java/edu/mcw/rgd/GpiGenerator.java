@@ -115,6 +115,10 @@ public class GpiGenerator {
     String getCompatibleSoType( Gene g, DAO dao ) throws Exception {
 
         String soAccId = g.getSoAccId();
+        if( soAccId==null ) {
+            return "SO:0000704"; //gene
+        }
+
         switch( soAccId ) {
             case "SO:0001217": //protein-coding gene
                 return soAccId;
