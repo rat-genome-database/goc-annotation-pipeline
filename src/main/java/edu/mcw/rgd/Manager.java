@@ -659,6 +659,7 @@ public class Manager {
             }
             if( !allowedQualifiers.contains(a.getQualifier()) ) {
                 log.warn("*** RGD:"+a.getAnnotatedObjectRgdId()+" "+a.getTermAcc()+": qualifier "+ a.getQualifier() + " violates gorule 0000001: Annotation skipped");
+                log.warn("*** allowed qualifiers: ["+Utils.concatenate(allowedQualifiers, ", ")+"]");
                 badQualifier++;
                 return false;
             }

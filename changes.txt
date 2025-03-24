@@ -1,6 +1,7 @@
 Mar 24, 2025
   added generation of GPI file for rat
   added reporting of malformed WITH_INFO fields
+  improved reporting of malformed qualifiers
 
 Jan 22, 2024
   updated to java 17
