@@ -612,7 +612,7 @@ public class Manager {
 
         // it could be empty, or '|'-separated; one of [DB:gene_symbol, DB:gene_id, DB:protein_name, DB:sequence_id, GO:GO_id, CHEBI:CHEBI_id]
         // LOGIC: we ensure, that all '|'-separated parts have ':'-separated parts, if not, we supply 'RGD:'
-        String[] parts = withInfo.split("[\\|]");
+        String[] parts = withInfo.split("[\\|\\,]");
         for( int i=0; i<parts.length; i++ ) {
             if( parts[i].indexOf(':')<0 ) {
                 parts[i] = "RGD:"+parts[i].trim();
