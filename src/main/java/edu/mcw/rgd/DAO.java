@@ -36,6 +36,16 @@ public class DAO {
         return adao.getAnnotationsBySpecies(speciesType,aspect);
     }
 
+    public synchronized Gene getGene( int rgdId ) throws Exception {
+        Gene gene = _geneCache.get(rgdId);
+        if( gene==null ) {
+            gene = geneDAO.getGene(rgdId);
+            _geneCache.put(rgdId, gene);
+        }
+        return gene;
+    }
+    static Map<Integer, Gene> _geneCache = new HashMap<>();
+
     public List<Gene> getActiveGenes(int speciesTypeKey ) throws Exception {
         return geneDAO.getActiveGenes(speciesTypeKey);
     }

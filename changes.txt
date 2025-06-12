@@ -1,3 +1,9 @@
+Jun 12, 2025
+  GAF file: implemented generation of col 12 (object type) according to the gaf 2.2 spec
+
+Jun 11, 2025
+  GAF file: improved qc of WITH_INFO field (added handling of ',')
+
 Jun 04, 2025
   improved qc of WITH_INFO field (added handling of ',')
 

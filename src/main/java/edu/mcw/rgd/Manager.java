@@ -1,6 +1,5 @@
 package edu.mcw.rgd;
 
-import edu.mcw.rgd.dao.impl.AnnotationDAO;
 import edu.mcw.rgd.datamodel.*;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
 import edu.mcw.rgd.datamodel.ontologyx.Aspect;
@@ -218,6 +217,8 @@ public class Manager {
             log.info("IEA annotations with CREATED_DATE left as-is: " + ieaDateAsIs);
         }
 
+        SO_Utils.dumpUnexpectedSoAccIds(dao);
+
         if( new File(getGoaFile()).exists() ) {
             BufferedReader br = Utils.openReader(getGoaFile());
             String line;
@@ -245,6 +246,9 @@ public class Manager {
                 goAnnotation.setAnnotExtension(tokens[15]);
                 goAnnotation.setGeneProductId(tokens[16]);
 
+                String soName = SO_Utils.getSoName(Integer.parseInt(goAnnotation.getObjectId()), dao);
+                goAnnotation.setObjectType(soName);
+
                 filteredList.add(goAnnotation);
 
                 if( Utils.isStringEmpty(goAnnotation.getCreatedDate()) ) {
@@ -255,6 +259,8 @@ public class Manager {
         } else {
             log.warn("   WARNING: failed to find file "+getGoaFile());
         }
+
+        SO_Utils.dumpUnexpectedSoAccIds(dao);
 
         BufferedWriter bw = Utils.openWriter(getOutputFileProtein());
         bw.write(headerLines);
@@ -368,7 +374,9 @@ public class Manager {
 
         // Check for Gene Object Type and remove the annotation without it
         if( a.getRgdObjectKey() == RgdId.OBJECT_KEY_GENES ) {
-            goAnnotation.setObjectType("gene");
+
+            String soName = SO_Utils.getSoName(a.getAnnotatedObjectRgdId(), dao);
+            goAnnotation.setObjectType(soName);
         } else {
             log.info(a.getKey() + " to term" + a.getTermAcc() + " is not annotated to a gene.");
             notGene++;

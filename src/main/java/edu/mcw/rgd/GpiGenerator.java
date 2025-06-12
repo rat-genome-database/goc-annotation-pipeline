@@ -3,7 +3,6 @@ package edu.mcw.rgd;
 import edu.mcw.rgd.datamodel.Gene;
 import edu.mcw.rgd.datamodel.SpeciesType;
 import edu.mcw.rgd.datamodel.XdbId;
-import edu.mcw.rgd.datamodel.ontologyx.Term;
 import edu.mcw.rgd.process.Utils;
 import org.apache.logging.log4j.Logger;
 
@@ -17,7 +16,6 @@ public class GpiGenerator {
 
     Set<String> canonicalProteinAccessions = null;
 
-    Map<String, Integer> unexpectedSoAccIds = new HashMap<>();
     public void run( Logger log, DAO dao ) throws Exception {
 
         long startTime = System.currentTimeMillis();
@@ -48,7 +46,7 @@ public class GpiGenerator {
 
         for( Gene g: genes ) {
 
-            String soAccId = getCompatibleSoType(g, dao);
+            String soAccId = SO_Utils.getCompatibleSoType(g, dao);
             if( soAccId==null ) {
                 continue;
             }
@@ -116,65 +114,14 @@ public class GpiGenerator {
 
         out.close();
 
-        for( Map.Entry<String,Integer> entry: unexpectedSoAccIds.entrySet() ) {
-            Term soTerm = dao.getTerm(entry.getKey());
-            System.out.println("  unexpected SO term: "+ soTerm.getAccId()+" ["+soTerm.getTerm()+"]   {"+entry.getValue()+"}");
-        }
+        SO_Utils.dumpUnexpectedSoAccIds(dao);
 
         log.info("data lines written: " + Utils.formatThousands(lines.size()));
         log.info("END:  time elapsed: " + Utils.formatElapsedTime(startTime, System.currentTimeMillis()));
         log.info("===");
     }
 
-    String getCompatibleSoType( Gene g, DAO dao ) throws Exception {
 
-        String soAccId = g.getSoAccId();
-        if( soAccId==null ) {
-            return "SO:0000704"; //gene
-        }
-
-        switch( soAccId ) {
-            case "SO:0001217": //protein-coding gene
-                return soAccId;
-
-            case "SO:0000336": //pseudogene
-            case "SO:0000043": //processed-pseudogene
-            case "SO:0001760": //unprocessed-pseudogene
-            case "SO:0002107": //transcribed_unprocessed_pseudogene
-            case "SO:0002109": //transcribed_processed_pseudogene
-                return "SO:0000336"; //pseudogene
-
-            case "SO:0001263": //ncRNA-coding gene or any SO child term
-                return soAccId;
-
-            case "SO:0000655": //ncRNA or any SO child term
-                return soAccId;
-
-            case "SO:0000704": //gene
-            case "SO:0002134": // [TR_C_Gene]
-            case "SO:0002126": // [IG_V_gene]
-            case "SO:0002137": // [TR_V_Gene]
-            case "SO:0002136": // [TR_J_Gene]
-                return "SO:0000704"; //gene
-
-            default:
-                if( dao.isDescendantOf(soAccId, "SO:0001263") ) {
-                    return soAccId;
-                }
-                if( dao.isDescendantOf(soAccId, "SO:0000655") ) {
-                    return soAccId;
-                }
-
-                Integer count = unexpectedSoAccIds.get(soAccId);
-                if( count == null ) {
-                    count = 1;
-                } else {
-                    count++;
-                }
-                unexpectedSoAccIds.put(soAccId, count);
-                return null;
-        }
-    }
 
     static List<Integer> XDB_KEYS = List.of(
             XdbId.XDB_KEY_NCBI_GENE,
