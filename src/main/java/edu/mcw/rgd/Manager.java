@@ -217,7 +217,7 @@ public class Manager {
             log.info("IEA annotations with CREATED_DATE left as-is: " + ieaDateAsIs);
         }
 
-        SO_Utils.dumpUnexpectedSoAccIds(dao);
+        //SO_Utils.dumpUnexpectedSoAccIds(dao);
 
         if( new File(getGoaFile()).exists() ) {
             BufferedReader br = Utils.openReader(getGoaFile());
@@ -246,8 +246,10 @@ public class Manager {
                 goAnnotation.setAnnotExtension(tokens[15]);
                 goAnnotation.setGeneProductId(tokens[16]);
 
-                String soName = SO_Utils.getSoName(Integer.parseInt(goAnnotation.getObjectId()), dao);
-                goAnnotation.setObjectType(soName);
+                // the goa file processed here is from UniProt
+                // and for all rows the object type is 'protein' and that is conformant with GAF 2.2 spec
+                //String soName = SO_Utils.getSoName(Integer.parseInt(goAnnotation.getObjectId()), dao);
+                //goAnnotation.setObjectType(soName);
 
                 filteredList.add(goAnnotation);
 
