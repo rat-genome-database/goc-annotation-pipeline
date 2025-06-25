@@ -21,7 +21,8 @@ public class GpiGenerator {
         long startTime = System.currentTimeMillis();
 
         int speciesTypeKey = SpeciesType.RAT;
-        String taxonId = "NCBITaxon:"+SpeciesType.getTaxonomicId(speciesTypeKey);
+        int taxonId = SpeciesType.getTaxonomicId(speciesTypeKey);
+        String taxonIdStr = "NCBITaxon:"+taxonId;
         String proteomeId = "UP000002494"; // proteome for rat
 
         log.info("START generation of GPI file");
@@ -71,7 +72,7 @@ public class GpiGenerator {
             info.objectType = soAccId;
 
             // col 6: Object taxon
-            info.objectTaxon = taxonId;
+            info.objectTaxon = taxonIdStr;
 
             // col 7: Encoded by (for proteins and transcripts only)
             // n/a
@@ -83,7 +84,7 @@ public class GpiGenerator {
             // n/a
 
             // col 10: cross references: NCBIGene: UniProtKB: ENSEMBL:  RNAcentral:
-            processXrefs( g, info, dao, proteomeId );
+            processXrefs( g, info, dao, proteomeId, taxonId );
 
 
             String line = info.toString();
@@ -129,7 +130,7 @@ public class GpiGenerator {
             XdbId.XDB_KEY_UNIPROT,
             68 // RNAcentral
             );
-    void processXrefs( Gene g, GpiInfo info, DAO dao, String proteomeId ) throws Exception {
+    void processXrefs( Gene g, GpiInfo info, DAO dao, String proteomeId, int taxonId ) throws Exception {
 
         List<XdbId> xdbIds = dao.getXdbIds(XDB_KEYS, g.getRgdId());
 
@@ -139,13 +140,13 @@ public class GpiGenerator {
         for( XdbId id: xdbIds ) {
             if( id.getXdbKey() == XdbId.XDB_KEY_UNIPROT ) {
                 if( canonicalProteinAccessions.contains(id.getAccId()) ) {
-                    appendXref(xrefs, id);
+                    appendXref(xrefs, id, taxonId);
                 }
             }
         }
         if( !xrefs.isEmpty() ) {
             // we have a canonical protein -- add any other xrefs
-            appendNonUniProtXrefs(xrefs, xdbIds);
+            appendNonUniProtXrefs(xrefs, xdbIds, taxonId);
 
             info.crossReferences = Utils.concatenate(xrefs, "|");
             info.geneProductProperties = "uniprot-proteome="+proteomeId;
@@ -157,13 +158,13 @@ public class GpiGenerator {
         for( XdbId id: xdbIds ) {
             if( id.getXdbKey() == XdbId.XDB_KEY_UNIPROT ) {
                 if( id.getSrcPipeline().contains("Swiss-Prot") ) {
-                    appendXref(xrefs, id);
+                    appendXref(xrefs, id, taxonId);
                 }
             }
         }
         if( !xrefs.isEmpty() ) {
             // we have a Swiss-Protein protein -- add any other xrefs
-            appendNonUniProtXrefs(xrefs, xdbIds);
+            appendNonUniProtXrefs(xrefs, xdbIds, taxonId);
 
             info.crossReferences = Utils.concatenate(xrefs, "|");
             info.geneProductProperties = "db-subset=Swiss-Prot";
@@ -175,13 +176,13 @@ public class GpiGenerator {
         for( XdbId id: xdbIds ) {
             if( id.getXdbKey() == XdbId.XDB_KEY_UNIPROT ) {
                 if( id.getSrcPipeline().contains("TrEMBL") ) {
-                    appendXref(xrefs, id);
+                    appendXref(xrefs, id, taxonId);
                 }
             }
         }
         if( !xrefs.isEmpty() ) {
             // we have a TrEMBL protein -- add any other xrefs
-            appendNonUniProtXrefs(xrefs, xdbIds);
+            appendNonUniProtXrefs(xrefs, xdbIds, taxonId);
 
             info.crossReferences = Utils.concatenate(xrefs, "|");
             info.geneProductProperties = "db-subset=TrEMBL";
@@ -190,19 +191,19 @@ public class GpiGenerator {
 
 
         // CASE 4: no uniprot accessions
-        appendNonUniProtXrefs(xrefs, xdbIds);
+        appendNonUniProtXrefs(xrefs, xdbIds, taxonId);
         info.crossReferences = Utils.concatenate(xrefs, "|");
     }
 
-    void appendNonUniProtXrefs( Set<String> xrefs, List<XdbId> ids ) {
+    void appendNonUniProtXrefs( Set<String> xrefs, List<XdbId> ids, int taxonId ) {
         for( XdbId id: ids ) {
             if( id.getXdbKey() != XdbId.XDB_KEY_UNIPROT ) {
-                appendXref(xrefs, id);
+                appendXref(xrefs, id, taxonId);
             }
         }
     }
 
-    void appendXref( Set<String> xrefs, XdbId xref ) {
+    void appendXref( Set<String> xrefs, XdbId xref, int taxonId ) {
 
         String prefix = null;
         switch (xref.getXdbKey()) {
@@ -211,7 +212,12 @@ public class GpiGenerator {
             case XdbId.XDB_KEY_UNIPROT -> prefix = "UniProtKB:";
             case 68 -> prefix = "RNAcentral:";
         }
-        xrefs.add( prefix+xref.getAccId() );
+        String xrefValue = prefix+xref.getAccId();
+        // append taxon id to RNAcentral xref
+        if( xref.getXdbKey()==68 ) {
+            xrefValue += "_" + taxonId;
+        }
+        xrefs.add(xrefValue);
     }
 
     public String getOutputFile() {

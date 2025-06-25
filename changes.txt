@@ -1,3 +1,7 @@
+Jun 25, 2025
+  GPI file: updated export of RNAcentral xrefs, per request from GOC;
+  generate_gpi_file.sh: added submission of rgd.gpi file to RGD github repo
+
 Jun 12, 2025
   GAF file: implemented generation of col 12 (object type) according to the gaf 2.2 spec
 
