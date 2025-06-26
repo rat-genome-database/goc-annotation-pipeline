@@ -15,6 +15,7 @@ APPDATADIR=$APPDIR/data
 DATA_RELEASE_DIR=/home/rgddata/data_release
 DATE_EXT=`date +%Y%m%d`
 FILENAME=rgd.gpi
+GITHUBDIR=github/rgd-annotation-files
 
 echo "=== Archive the old file in data directory  ==="
 cp -p $APPDATADIR/$FILENAME $APPDATADIR/$FILENAME.$DATE_EXT
@@ -50,7 +51,7 @@ if [ "$SERVER" == "REED" ]; then
   git add $FILENAME.gz
 
   echo "=== Committing the file to github ==="
-  git commit -m "weekly commit for $DATE_EXT"
+  git commit -m "weekly commit of rgd.gpi.gz file for $DATE_EXT"
 
   echo "=== Fetch and pull the file from github ==="
   git fetch
