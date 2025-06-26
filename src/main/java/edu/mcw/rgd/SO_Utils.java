@@ -2,6 +2,7 @@ package edu.mcw.rgd;
 
 import edu.mcw.rgd.datamodel.Gene;
 import edu.mcw.rgd.datamodel.ontologyx.Term;
+import edu.mcw.rgd.process.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +64,11 @@ public class SO_Utils {
             case "SO:0002109": //transcribed_processed_pseudogene
                 return "SO:0000336"; //pseudogene
 
-            case "SO:0001263": //ncRNA-coding gene or any SO child term
+            case "SO:0001263": //ncRNA-gene
+                // adjustment for mirna genes
+                if( Utils.NVL(g.getSymbol(), "").toLowerCase().startsWith("mir") ) {
+                    return "SO:0001265"; // miRNA_gene
+                }
                 return soAccId;
 
             case "SO:0000655": //ncRNA or any SO child term
@@ -75,6 +80,12 @@ public class SO_Utils {
             case "SO:0002137": // [TR_V_Gene]
             case "SO:0002136": // [TR_J_Gene]
                 return "SO:0000704"; //gene
+
+            case "SO:0002128": // mt_rRNA
+                return "SO:0002363"; // mt_rRNA_gene
+
+            case "SO:0000405": // yRNA
+                return "SO:0002359"; // yRNA_gene
 
             default:
                 if( dao.isDescendantOf(soAccId, "SO:0001263") ) {

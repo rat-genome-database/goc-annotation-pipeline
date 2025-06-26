@@ -1,3 +1,9 @@
+Jun 26, 2025
+  GPI file: updates to SO ACC ids
+  - mirna genes have SO:0001265
+  - SO:0002128 [mt_rRNA] => SO:0002363 [mt_rRNA_gene]
+  - SO:0000405 [y_RNA] => SO:0002359 [y_RNA_gene]
+
 Jun 25, 2025
   GPI file: updated export of RNAcentral xrefs, per request from GOC;
   generate_gpi_file.sh: added submission of rgd.gpi file to RGD github repo
