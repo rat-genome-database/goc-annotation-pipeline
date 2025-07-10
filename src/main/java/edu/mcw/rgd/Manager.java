@@ -30,6 +30,7 @@ public class Manager {
     private String outputFileProtein;
     private String goaFile;
     private Set<Integer> refRgdIdsForGoPipelines;
+    private int refRgdIdForRatISO;
     private int fileSizeChangeThresholdInPercent;
     private Set<String> allowedQualifiersForMF;
     private Set<String> allowedQualifiersForBP;
@@ -586,7 +587,7 @@ public class Manager {
         }
         goAnnotation.setGeneProductId(geneProductFormId);
 
-        String references = mergeWithXrefSource(goAnnotation.getReferences(), a.getXrefSource(), goAnnotation.getDataSrc(), goAnnotation.getEvidence());
+        String references = mergeWithXrefSource(goAnnotation.getReferences(), a.getXrefSource(), goAnnotation.getDataSrc(), goAnnotation.getEvidence(), a.getRefRgdId());
         goAnnotation.setReferences(references);
 
         return goAnnotation;
@@ -677,7 +678,7 @@ public class Manager {
         return true;
     }
 
-    private String mergeWithXrefSource(String references, String xrefSource, String dataSrc, String evidence) {
+    private String mergeWithXrefSource(String references, String xrefSource, String dataSrc, String evidence, int refRgdId) {
 
         Set<String> refs = new TreeSet<>();
 
@@ -698,8 +699,13 @@ public class Manager {
 
             // remove all non RGD: entries
             refs.removeIf(ref ->
-                !(ref.startsWith("RGD:") || ref.startsWith("GO_REF:"))
+                !ref.startsWith("RGD:")
             );
+
+            // https://github.com/geneontology/go-site/blob/master/metadata/gorefs.yaml
+            if( refRgdId == getRefRgdIdForRatISO() ) {
+                refs.add("GO_REF:0000121");
+            }
         }
 
         return Utils.concatenate(refs, "|");
@@ -919,6 +925,14 @@ public class Manager {
 
     public  void setRefRgdIdsForGoPipelines(Set<Integer> refRgdIdsForGoPipelines) {
         this.refRgdIdsForGoPipelines = refRgdIdsForGoPipelines;
+    }
+
+    public int getRefRgdIdForRatISO() {
+        return refRgdIdForRatISO;
+    }
+
+    public void setRefRgdIdForRatISO(int refRgdIdForRatISO) {
+        this.refRgdIdForRatISO = refRgdIdForRatISO;
     }
 
     public String getGoaFile() {

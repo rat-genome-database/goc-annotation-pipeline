@@ -1,7 +1,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="manager" class="edu.mcw.rgd.Manager">
-        <property name="version" value="GOC Annotation pipeline  -- build Jun 26, 2025" />
+        <property name="version" value="GOC Annotation pipeline  -- build Jul 10, 2025" />
         <property name="gpiGenerator" ref="gpiGenerator"/>
         <property name="pipelineName" value="goc_annotation" />
         <property name="refRgdIdsForGoPipelines">
@@ -12,6 +12,7 @@
                 <value>150520179</value><!-- GO annotations, non rat, non-mouse -->
             </set>
         </property>
+        <property name="refRgdIdForRatISO" value="1624291"/>
         <property name="goaFile" value="/home/rgddata/pipelines/go-rat-annotation-pipeline/data/goa_rgd.txt" />
         <property name="outputFileRGD" value="data/gene_association.rgd" />
         <property name="outputFileProtein" value="data/gene_protein_association.rgd" />
