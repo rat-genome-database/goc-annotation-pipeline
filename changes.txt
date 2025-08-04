@@ -1,3 +1,6 @@
+Aug 04, 2025
+  GAF file: REFERENCES field: if there are multiple RGD IDs, only the RGD ID with the highest importance will be used
+
 Jul 10, 2025
   GAF file: for ISO RGD annotations with REF_RGD_ID=1624291, all GO_REFs are replaced with GO_REF:0000121
 

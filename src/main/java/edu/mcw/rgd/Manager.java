@@ -708,7 +708,44 @@ public class Manager {
             }
         }
 
+        qcPipelineRefs(refs);
+
         return Utils.concatenate(refs, "|");
+    }
+
+    // there cannot be multiple RGD xrefs; if there are, the low priority ones are removed
+    void qcPipelineRefs( Set<String> refs ) {
+
+        int rgdRefCount = 0;
+        for( String ref: refs ) {
+            if( ref.startsWith("RGD:") ) {
+                rgdRefCount++;
+            }
+        }
+        if( rgdRefCount <= 1 ) {
+            return;
+        }
+
+        // ref rgd ids for GO pipelines, from low to high priority
+        List<String> goPipelinesRgdIds = new ArrayList<>();
+        for( int refRgdId: getRefRgdIdsForGoPipelines() ) {
+            goPipelinesRgdIds.add( "RGD:"+refRgdId );
+        }
+        goPipelinesRgdIds.add( "RGD:"+getRefRgdIdForRatISO() );
+
+        while( rgdRefCount>1 ) {
+
+            for( String goPipelineRgdId: goPipelinesRgdIds ) {
+                if( refs.contains(goPipelineRgdId)) {
+                    refs.remove(goPipelineRgdId);
+                    rgdRefCount--;
+                }
+            }
+        }
+
+        if( refs.size()>1 ) {
+            System.out.println("WARNING! unexpected count of references: "+Utils.concatenate(refs, "|"));
+        }
     }
 
     /// Apr 2021: if ISO annotation contains RGD id in WITH field, replace it with MGI id for mouse, and UniProt Swiss id for human
