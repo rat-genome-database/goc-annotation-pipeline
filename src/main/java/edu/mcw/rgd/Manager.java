@@ -743,7 +743,7 @@ public class Manager {
             }
         }
 
-        if( refs.size()>1 ) {
+        if( refs.size()>2 ) {
             System.out.println("WARNING! unexpected count of references: "+Utils.concatenate(refs, "|"));
         }
     }
