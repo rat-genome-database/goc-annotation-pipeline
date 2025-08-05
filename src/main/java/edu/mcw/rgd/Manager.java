@@ -820,6 +820,8 @@ public class Manager {
 
     void writeGeneAssociationsFile(Collection<GoAnnotation> annotations, String headerLines) throws Exception {
 
+        log.debug("writing file "+getOutputFileRGD()+" ...");
+
         BufferedWriter bw = Utils.openWriter(getOutputFileRGD());
         bw.write(headerLines);
 
@@ -827,6 +829,8 @@ public class Manager {
             writeLine(bw, annotation);
         }
         bw.close();
+
+        log.debug("   file written. OK");
     }
 
     synchronized String formatDate(Date dt) {
@@ -880,6 +884,9 @@ public class Manager {
      *
      */
     void validateOutputFileSize() throws Exception {
+
+        log.debug("validating output file size for "+getOutputFileRGD());
+
         File file = new File(getOutputFileRGD());
         long fileSize = file.length();
         String fileNamePrefix = file.getName()+".";
@@ -924,6 +931,8 @@ public class Manager {
                 throw new Exception("File size for "+file.getAbsolutePath()+" of "+fileSize+" is outside of allowed range ["+minAllowableFileSize+", "+maxAllowableFileSize+"]");
             }
         }
+
+        log.debug("   OK");
     }
 
     public String checkNull(String str) {
