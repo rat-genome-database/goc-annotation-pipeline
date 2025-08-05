@@ -74,26 +74,7 @@ public class Manager {
     SimpleDateFormat headerDate = new SimpleDateFormat("yyyy-MM-dd");
     String date11MonthAgo;
 
-    private int notForCuration = 0;
-    private int notGene = 0;
-    private int ibaAnnot = 0;
-    private int obsolete = 0;
-    private int ipiAnnot = 0;
-    private int ipiInCatalytic = 0;
-    private int iepHep = 0;
-    private int ndAnnotations = 0;
-    private int idaWithWith = 0;
-    private int icWithoutWith = 0;
-    private int ipiWithoutWith = 0;
-    private int badQualifier = 0;
-    private int noQualifier = 0;
-    private int uniProtKbReplacements = 0;
-    private int geneProductFormIdCleared = 0;
-    private int rgdIdsInWithInfoReplaced = 0;
-    private int rgdIdsInWithInfoUnexpectedSpecies = 0;
-    private int rgdIdsInWithInfoMultipleSwissProt = 0;
-    private int ieaDateAdjusted = 0;
-    private int ieaDateAsIs = 0;
+    private CounterPool counters = new CounterPool();
 
     Logger log = LogManager.getLogger("core");
     Logger logWarnings = LogManager.getLogger("warnings");
@@ -164,7 +145,9 @@ public class Manager {
 
         Set<GoAnnotation> filteredList = new TreeSet<>();
 
+        int i = 0;
         for( Annotation annotation: annotations ) {
+            log.debug((++i)+"/"+ annotations.size()+".  "+annotation.getKey());
             GoAnnotation result = handleAnnotation(annotation);
             if(result != null) {
                 result.setTaxon("taxon:" + SpeciesType.getTaxonomicId(speciesTypeKey));
@@ -176,47 +159,7 @@ public class Manager {
 
         validateOutputFileSize();
 
-        log.info("=====");
-        log.info("Total Number of GO Annotations in RGD: " + annotations.size());
-        log.info("Total Number of Annotations Sent to GO from RGD: " + filteredList.size());
-        log.info(" Annotations to Obsolete terms: " + obsolete );
-        log.info(" NotForCuration Annotations: " + notForCuration );
-        log.info(" Not gene Annotations: " + notGene );
-        log.info("*** IEP and HEP Annotations to MF and CC Ontology (rejected): " + iepHep );
-        log.info("No Data (ND) evidence code Annotations: " + ndAnnotations );
-        log.info("IPI Annotations to Catalytic Terms: " + ipiInCatalytic );
-        log.info("GORULE:0000016 violations: IC annotations must have a WITH field:" + icWithoutWith );
-        log.info("GORULE:0000017 violations: IDA annotations must not have WITH field: " + idaWithWith );
-        log.info("GORULE:0000018 violations: IPI annotations must have a WITH field:" + ipiWithoutWith );
-        log.info("IBA annotations from other sources: "+ ibaAnnot );
-        log.info("IPI annotations to root terms with null WITH field: " + ipiAnnot  );
-        if( badQualifier!=0 ) {
-            log.info("annotations with invalid qualifiers (other than NOT, contributes_to, colocalizes_with, ...): " + badQualifier);
-        }
-        if( noQualifier!=0 ) {
-            log.info("annotations with no qualifiers has been supplied with default gaf 2.2 qualifiers: " + noQualifier);
-        }
-        if( uniProtKbReplacements!=0 ) {
-            log.info("annotations with source field 'UniProtKB' replaced with 'UniProt': " + uniProtKbReplacements);
-        }
-        if( geneProductFormIdCleared!=0 ) {
-            log.info("ISO annotations with cleared GENE_PRODUCT_FORM_ID field: " + geneProductFormIdCleared);
-        }
-        if( rgdIdsInWithInfoReplaced!=0 ) {
-            log.info("ISO annotations with RGD IDs in WITH field replaced with MGI/SwissProt ids: " + rgdIdsInWithInfoReplaced);
-        }
-        if( rgdIdsInWithInfoUnexpectedSpecies!=0 ) {
-            log.info("ISO annotations with RGD IDs in WITH field has species other than mouse/human: " + rgdIdsInWithInfoUnexpectedSpecies);
-        }
-        if( rgdIdsInWithInfoMultipleSwissProt!=0 ) {
-            log.info("ISO annotations with RGD IDs in WITH field has multiple SwissPro mappings: " + rgdIdsInWithInfoMultipleSwissProt);
-        }
-        if( ieaDateAdjusted!=0 ) {
-            log.info("IEA annotations with CREATED_DATE adjusted: " + ieaDateAdjusted);
-        }
-        if( ieaDateAsIs!=0 ) {
-            log.info("IEA annotations with CREATED_DATE left as-is: " + ieaDateAsIs);
-        }
+        printStats(annotations.size(), filteredList.size());
 
         //SO_Utils.dumpUnexpectedSoAccIds(dao);
 
@@ -271,6 +214,73 @@ public class Manager {
             writeLine(bw,g);
         }
         bw.close();
+    }
+
+    void printStats( int annotationsSize, int filteredListSize ) {
+
+        int obsolete = counters.get("obsolete");
+        int notForCuration = counters.get("notForCuration");
+        int notGene = counters.get("notGene");
+        int iepHep = counters.get("iepHep");
+        int ndAnnotations = counters.get("ndAnnotations");
+        int ipiInCatalytic = counters.get("ipiInCatalytic");
+        int icWithoutWith = counters.get("icWithoutWith");
+        int idaWithWith = counters.get("idaWithWith");
+        int ipiWithoutWith = counters.get("ipiWithoutWith");
+        int ibaAnnot = counters.get("ibaAnnot");
+        int ipiAnnot = counters.get("ipiAnnot");
+        int badQualifier = counters.get("badQualifier");
+        int noQualifier = counters.get("noQualifier");
+        int uniProtKbReplacements = counters.get("uniProtKbReplacements");
+        int geneProductFormIdCleared = counters.get("geneProductFormIdCleared");
+        int rgdIdsInWithInfoReplaced = counters.get("rgdIdsInWithInfoReplaced");
+        int rgdIdsInWithInfoUnexpectedSpecies = counters.get("rgdIdsInWithInfoUnexpectedSpecies");
+        int rgdIdsInWithInfoMultipleSwissProt = counters.get("rgdIdsInWithInfoMultipleSwissProt");
+        int ieaDateAdjusted = counters.get("ieaDateAdjusted");
+        int ieaDateAsIs = counters.get("ieaDateAsIs");
+
+
+        log.info("=====");
+        log.info("Total Number of GO Annotations in RGD: " + annotationsSize);
+        log.info("Total Number of Annotations Sent to GO from RGD: " + filteredListSize);
+        log.info(" Annotations to Obsolete terms: " + obsolete );
+        log.info(" NotForCuration Annotations: " + notForCuration );
+        log.info(" Not gene Annotations: " + notGene );
+        log.info("*** IEP and HEP Annotations to MF and CC Ontology (rejected): " + iepHep );
+        log.info("No Data (ND) evidence code Annotations: " + ndAnnotations );
+        log.info("IPI Annotations to Catalytic Terms: " + ipiInCatalytic );
+        log.info("GORULE:0000016 violations: IC annotations must have a WITH field:" + icWithoutWith );
+        log.info("GORULE:0000017 violations: IDA annotations must not have WITH field: " + idaWithWith );
+        log.info("GORULE:0000018 violations: IPI annotations must have a WITH field:" + ipiWithoutWith );
+        log.info("IBA annotations from other sources: "+ ibaAnnot );
+        log.info("IPI annotations to root terms with null WITH field: " + ipiAnnot  );
+        if( badQualifier!=0 ) {
+            log.info("annotations with invalid qualifiers (other than NOT, contributes_to, colocalizes_with, ...): " + badQualifier);
+        }
+        if( noQualifier!=0 ) {
+            log.info("annotations with no qualifiers has been supplied with default gaf 2.2 qualifiers: " + noQualifier);
+        }
+        if( uniProtKbReplacements!=0 ) {
+            log.info("annotations with source field 'UniProtKB' replaced with 'UniProt': " + uniProtKbReplacements);
+        }
+        if( geneProductFormIdCleared!=0 ) {
+            log.info("ISO annotations with cleared GENE_PRODUCT_FORM_ID field: " + geneProductFormIdCleared);
+        }
+        if( rgdIdsInWithInfoReplaced!=0 ) {
+            log.info("ISO annotations with RGD IDs in WITH field replaced with MGI/SwissProt ids: " + rgdIdsInWithInfoReplaced);
+        }
+        if( rgdIdsInWithInfoUnexpectedSpecies!=0 ) {
+            log.info("ISO annotations with RGD IDs in WITH field has species other than mouse/human: " + rgdIdsInWithInfoUnexpectedSpecies);
+        }
+        if( rgdIdsInWithInfoMultipleSwissProt!=0 ) {
+            log.info("ISO annotations with RGD IDs in WITH field has multiple SwissPro mappings: " + rgdIdsInWithInfoMultipleSwissProt);
+        }
+        if( ieaDateAdjusted!=0 ) {
+            log.info("IEA annotations with CREATED_DATE adjusted: " + ieaDateAdjusted);
+        }
+        if( ieaDateAsIs!=0 ) {
+            log.info("IEA annotations with CREATED_DATE left as-is: " + ieaDateAsIs);
+        }
     }
 
     // load annotations, ordered by (RGD_ID,TERM_ACC)
@@ -382,7 +392,7 @@ public class Manager {
             goAnnotation.setObjectType(soName);
         } else {
             log.info(a.getKey() + " to term" + a.getTermAcc() + " is not annotated to a gene.");
-            notGene++;
+            counters.increment("notGene");
             return null;
         }
 
@@ -396,7 +406,7 @@ public class Manager {
         //GO consortium rule GO:0000026
         if(a.getEvidence().equals("IBA") && !a.getDataSrc().equals("PAINT")) {
             log.debug(a.getTermAcc() +" is an IBA annotation: Annotation skipped");
-            ibaAnnot++;
+            counters.increment("ibaAnnot");
             return null;
         }
 
@@ -404,7 +414,7 @@ public class Manager {
         //Check for obsolete terms and filter them
         if(obsoleteTerms.contains(a.getTermAcc())){
             log.debug(a.getTermAcc() +" is an Obsolete Term: Annotation skipped");
-            obsolete++;
+            counters.increment("obsolete");
             return null;
         }
 
@@ -427,7 +437,7 @@ public class Manager {
         // Remove WithInfo for evidence Codes IDA,NAS,ND and TAS
         validateWithInfo( goAnnotation, a );
 
-        rgdIdsInWithInfoReplaced += normalizeWithInfoForISO(goAnnotation, a);
+        counters.add("rgdIdsInWithInfoReplaced", normalizeWithInfoForISO(goAnnotation, a));
 
         // GO consortium rule GO:0000002 and GO consortium rule GO:0000003 and GO:000005
         // "protein binding" annotation -- GO:0005515 -- must have evidence 'IPI' and non-null WITH field
@@ -436,10 +446,10 @@ public class Manager {
         if( (a.getTermAcc().equals("GO:0005515") || a.getTermAcc().equals("GO:0005488"))) {
             if(a.getEvidence().equals("IPI")) {
                 if (goAnnotation.getWithInfo().length() == 0) {
-                    ipiAnnot++;
+                    counters.increment("ipiAnnot");
                     return null;
                 }
-            } else { ipiAnnot++;
+            } else { counters.increment("ipiAnnot");
                 return null;}
             log.debug(a.getTermAcc() +" is an "+a.getEvidence()+ " annotation. Only IPI annotation with a non-null WITH field are allowed.");
 
@@ -451,7 +461,7 @@ public class Manager {
         if((a.getEvidence().equals("IEP") || a.getEvidence().equals("HEP")) && !a.getAspect().equals("P")) {
             logRejected.debug("GORULE:0000006> "+a.getEvidence()+ " annotation skipped -- IEP/HEP annotations are restricted to Biological Process ontology"
                 +"\n   "+a.dump("|"));
-            iepHep++;
+            counters.increment("iepHep");
             return null;
         }
 
@@ -459,14 +469,14 @@ public class Manager {
         //IPI annotations should not be used with catalytic molecular function terms
         if(a.getEvidence().equals("IPI")  && catalyticTerms.contains(a.getTermAcc())) {
             log.info(a.getTermAcc() +" is an "+a.getEvidence()+ " annotation. They should not be used with catalytic molecular terms." );
-            ipiInCatalytic++;
+            counters.increment("ipiInCatalytic");
             return null;
         }
 
         //GO consortium rule GO:0000008
         //Check for Not4Curation Go terms
         if( !dao.isForCuration(a.getTermAcc()) ) {
-            notForCuration++;
+            counters.increment("notForCuration");
             logWarning(" term "+a.getTerm()+" is Not4Curation! annotation skipped" );
             return null;
         }
@@ -481,7 +491,7 @@ public class Manager {
         if( a.getEvidence().equals("ND") && a.getTerm().startsWith("GO:")
                 && !(a.getTerm().equals("GO:0005575") || a.getTerm().equals("GO:0003674") || a.getTerm().equals("GO:0008150")) ) {
             log.info(a.getTermAcc() +" is an ND annotation. Fails rule GO:0000011");
-            ndAnnotations++;
+            counters.increment("ndAnnotations");
             return null;
         }
 
@@ -489,7 +499,7 @@ public class Manager {
         if( !a.getEvidence().equals("ND")
                 && (a.getTerm().equals("GO:0005575") || a.getTerm().equals("GO:0003674") || a.getTerm().equals("GO:0008150")) ) {
             log.info(a.getTermAcc() +" is not an ND annotation.Fails rule GO:0000011");
-            ndAnnotations++;
+            counters.increment("ndAnnotations");
             return null;
         }
 
@@ -507,7 +517,7 @@ public class Manager {
         // IC annotations require a WITH field
         if( a.getEvidence().equals("IC") && goAnnotation.withInfo.length()==0 ) {
             log.info("Annot to RGD:"+a.getAnnotatedObjectRgdId()+", "+a.getTermAcc() + ", SRC="+a.getDataSrc()+" failed GORULE:0000016: IC annotations require a WITH field");
-            icWithoutWith++;
+            counters.increment("icWithoutWith");
             return null;
         }
 
@@ -515,7 +525,7 @@ public class Manager {
         // IDA annotations must not have a With/From entry; When there is an appropriate ID for the "With/From" column, use IPI.
         if( a.getEvidence().equals("IDA") && goAnnotation.getWithInfo().length()!=0 ) {
             log.info("Annot to RGD:"+a.getAnnotatedObjectRgdId()+", "+a.getTermAcc() + ", SRC="+a.getDataSrc()+" failed GORULE:0000017: IDA annotations must not have a With/From entry; use IPI code instead");
-            idaWithWith++;
+            counters.increment("idaWithWith");
             return null;
         }
 
@@ -523,7 +533,7 @@ public class Manager {
         // IPI annotations require a With/From entry
         if( a.getEvidence().equals("IPI") && goAnnotation.withInfo.length()==0 ) {
             log.info("Annot to RGD:"+a.getAnnotatedObjectRgdId()+", "+a.getTermAcc() + ", SRC="+a.getDataSrc()+" failed GORULE:0000018: IPI annotations require a WITH field");
-            ipiWithoutWith++;
+            counters.increment("ipiWithoutWith");
             return null;
         }
 
@@ -548,9 +558,9 @@ public class Manager {
                 } else {
                     goAnnotation.setCreatedDate(formatDate(a.getLastModifiedDate()));
                 }
-                ieaDateAdjusted++;
+                counters.increment("ieaDateAdjusted");
             } else {
-                ieaDateAsIs++;
+                counters.increment("ieaDateAsIs");
             }
         }
         if( Utils.isStringEmpty(goAnnotation.getCreatedDate()) ) {
@@ -563,7 +573,7 @@ public class Manager {
         else
         if(a.getDataSrc().equalsIgnoreCase("UniProtKB")) {
             goAnnotation.setDataSrc("UniProt");
-            uniProtKbReplacements++;
+            counters.increment("uniProtKbReplacements");
         } else
             goAnnotation.setDataSrc(a.getDataSrc());
 
@@ -583,7 +593,7 @@ public class Manager {
         String geneProductFormId = a.getGeneProductFormId();
         if( a.getEvidence().equals("ISO") && !Utils.isStringEmpty(geneProductFormId) ) {
             geneProductFormId = "";
-            geneProductFormIdCleared++;
+            counters.increment("geneProductFormIdCleared");
         }
         goAnnotation.setGeneProductId(geneProductFormId);
 
@@ -644,7 +654,7 @@ public class Manager {
             } else {
                 a.setQualifier("located_in");
             }
-            noQualifier++;
+            counters.increment("noQualifier");
         }
         else if( a.getQualifier().equals("NOT") ) {
             // no qualifier in the annotation: supply a default qualifier
@@ -655,7 +665,7 @@ public class Manager {
             } else {
                 a.setQualifier("NOT|located_in");
             }
-            noQualifier++;
+            counters.increment("noQualifier");
         }
         else {
             Set<String> allowedQualifiers = null;
@@ -671,7 +681,7 @@ public class Manager {
             if( !allowedQualifiers.contains(a.getQualifier()) ) {
                 log.warn("*** RGD:"+a.getAnnotatedObjectRgdId()+" "+a.getTermAcc()+": qualifier "+ a.getQualifier() + " violates gorule 0000001: Annotation skipped");
                 log.warn("*** allowed qualifiers: ["+Utils.concatenate(allowedQualifiers, ", ")+"]");
-                badQualifier++;
+                counters.increment("badQualifier");
                 return false;
             }
         }
@@ -794,7 +804,7 @@ public class Manager {
                                 swissProtId = xdbId;
                             } else {
                                 logWarning("  WARNING: multiple SWISS PROT IDs for RGD:"+rgdId);
-                                rgdIdsInWithInfoMultipleSwissProt++;
+                                counters.increment("rgdIdsInWithInfoMultipleSwissProt");
                             }
                         }
                     }
@@ -811,7 +821,7 @@ public class Manager {
             }
             else {
                 logWarning("   WARNING: unexpected species type for RGD:"+rgdId);
-                rgdIdsInWithInfoUnexpectedSpecies++;
+                counters.increment("rgdIdsInWithInfoUnexpectedSpecies");
             }
         }
 
