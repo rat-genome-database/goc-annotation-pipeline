@@ -145,9 +145,9 @@ public class Manager {
 
         Set<GoAnnotation> filteredList = new TreeSet<>();
 
-        int i = 0;
+        //int i = 0;
         for( Annotation annotation: annotations ) {
-            log.debug((++i)+"/"+ annotations.size()+".  "+annotation.getKey());
+            //log.debug((++i)+"/"+ annotations.size()+".  "+annotation.getKey());
             GoAnnotation result = handleAnnotation(annotation);
             if(result != null) {
                 result.setTaxon("taxon:" + SpeciesType.getTaxonomicId(speciesTypeKey));
@@ -597,7 +597,7 @@ public class Manager {
         }
         goAnnotation.setGeneProductId(geneProductFormId);
 
-        String references = mergeWithXrefSource(goAnnotation.getReferences(), a.getXrefSource(), goAnnotation.getDataSrc(), goAnnotation.getEvidence(), a.getRefRgdId());
+        String references = mergeWithXrefSource(goAnnotation.getReferences(), a.getXrefSource(), goAnnotation.getDataSrc(), goAnnotation.getEvidence(), a.getRefRgdId(), a);
         goAnnotation.setReferences(references);
 
         return goAnnotation;
@@ -688,7 +688,7 @@ public class Manager {
         return true;
     }
 
-    private String mergeWithXrefSource(String references, String xrefSource, String dataSrc, String evidence, int refRgdId) {
+    private String mergeWithXrefSource(String references, String xrefSource, String dataSrc, String evidence, int refRgdId, Annotation a) {
 
         Set<String> refs = new TreeSet<>();
 
@@ -718,13 +718,13 @@ public class Manager {
             }
         }
 
-        qcPipelineRefs(refs);
+        qcPipelineRefs(refs, a);
 
         return Utils.concatenate(refs, "|");
     }
 
     // there cannot be multiple RGD xrefs; if there are, the low priority ones are removed
-    void qcPipelineRefs( Set<String> refs ) {
+    void qcPipelineRefs( Set<String> refs, Annotation a ) {
 
         int rgdRefCount = 0;
         for( String ref: refs ) {
@@ -743,12 +743,29 @@ public class Manager {
         }
         goPipelinesRgdIds.add( "RGD:"+getRefRgdIdForRatISO() );
 
-        while( rgdRefCount>1 ) {
+        // remove pipeline RGD IDs until at most one RGD id is left
+        if( rgdRefCount>1 ) {
 
             for( String goPipelineRgdId: goPipelinesRgdIds ) {
                 if( refs.contains(goPipelineRgdId)) {
                     refs.remove(goPipelineRgdId);
                     rgdRefCount--;
+                    if( rgdRefCount==1 ) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        while( rgdRefCount>1 ) {
+
+            // remove one RGD ID at random
+            for( String r: refs ) {
+                if( r.startsWith("RGD:") ) {
+                    refs.remove(r);
+                    rgdRefCount--;
+                    log.warn("WARNING! removed non-pipeline REF_RGD_ID "+r+"  full_annot_key="+a.getKey());
+                    break;
                 }
             }
         }
