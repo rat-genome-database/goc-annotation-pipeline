@@ -15,6 +15,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * @author hsnalabolu
@@ -87,9 +88,13 @@ public class Manager {
         Manager manager = (Manager) (bf.getBean("manager"));
 
         boolean generateGpiFile = false;
+        boolean multithreaded = false;
         for( String arg: args ) {
             if( arg.equals("--generateGpiFile") ) {
                 generateGpiFile = true;
+            }
+            else if( arg.equals("--multithreaded") ) {
+                multithreaded = true;
             }
         }
 
@@ -97,7 +102,7 @@ public class Manager {
             if( generateGpiFile ) {
                 manager.getGpiGenerator().run(manager.log, manager.dao);
             } else {
-                manager.run(SpeciesType.RAT);
+                manager.run(SpeciesType.RAT, multithreaded);
             }
         } catch (Exception e) {
             Utils.printStackTrace(e, manager.log);
@@ -105,7 +110,7 @@ public class Manager {
         }
     }
 
-    public void run(int speciesTypeKey) throws Exception {
+    public void run( int speciesTypeKey, boolean multithreaded ) throws Exception {
 
         long startTime = System.currentTimeMillis();
 
@@ -123,7 +128,7 @@ public class Manager {
 
 
         pmidMap = dao.loadPmidMap();
-        handleGO(species, speciesTypeKey);
+        handleGO(species, speciesTypeKey, multithreaded);
 
         dumpWarnings();
 
@@ -131,7 +136,7 @@ public class Manager {
         log.info("===");
     }
 
-    void handleGO(String species, int speciesTypeKey) throws Exception {
+    void handleGO(String species, int speciesTypeKey, boolean multithreaded) throws Exception {
 
         log.info("Getting RGD annotations for species "+ species);
 
@@ -145,15 +150,26 @@ public class Manager {
 
         Set<GoAnnotation> filteredList = new TreeSet<>();
 
-        //int i = 0;
-        for( Annotation annotation: annotations ) {
-            //log.debug((++i)+"/"+ annotations.size()+".  "+annotation.getKey());
-            GoAnnotation result = handleAnnotation(annotation);
-            if(result != null) {
-                result.setTaxon("taxon:" + SpeciesType.getTaxonomicId(speciesTypeKey));
-                filteredList.add(result);
-            }
+        Stream<Annotation> stream = annotations.stream();
+        if( multithreaded ) {
+            stream = stream.parallel();
         }
+        stream.forEach( annotation -> {
+
+            try {
+                GoAnnotation result = handleAnnotation(annotation);
+                if(result != null) {
+                    result.setTaxon("taxon:" + SpeciesType.getTaxonomicId(speciesTypeKey));
+                    synchronized (filteredList) {
+                        if( !filteredList.add(result) ) {
+                            log.warn("UNEXPECTED! duplicate annotation!");
+                        }
+                    }
+                }
+            } catch( Exception e ) {
+                throw new RuntimeException(e);
+            }
+        });
 
         writeGeneAssociationsFile(filteredList, headerLines);
 
@@ -238,7 +254,7 @@ public class Manager {
         int rgdIdsInWithInfoMultipleSwissProt = counters.get("rgdIdsInWithInfoMultipleSwissProt");
         int ieaDateAdjusted = counters.get("ieaDateAdjusted");
         int ieaDateAsIs = counters.get("ieaDateAsIs");
-
+        int gorule5 = counters.get("gorule5");
 
         log.info("=====");
         log.info("Total Number of GO Annotations in RGD: " + annotationsSize);
@@ -249,6 +265,9 @@ public class Manager {
         log.info("*** IEP and HEP Annotations to MF and CC Ontology (rejected): " + iepHep );
         log.info("No Data (ND) evidence code Annotations: " + ndAnnotations );
         log.info("IPI Annotations to Catalytic Terms: " + ipiInCatalytic );
+        if( gorule5!=0 ) {
+            log.info("GORULE:0000005 violations: IEA, ISS, ISO, ISM, ISA, IBA, RCA annotations are not allowed for direct annotations to protein binding GO:0005515 or GO:0005488 binding:" + gorule5);
+        }
         log.info("GORULE:0000016 violations: IC annotations must have a WITH field:" + icWithoutWith );
         log.info("GORULE:0000017 violations: IDA annotations must not have WITH field: " + idaWithWith );
         log.info("GORULE:0000018 violations: IPI annotations must have a WITH field:" + ipiWithoutWith );
@@ -381,6 +400,10 @@ public class Manager {
         return result;
     }
 
+    // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000005.md
+    // IEA, ISS, ISO, ISM, ISA, IBA, RCA annotations are not allowed for direct annotations to 'protein binding GO:0005515 or GO:0005488 binding
+    final static Set<String> GORULE5_EVIDENCELIST = new HashSet<>(Arrays.asList("IEA", "ISS", "ISO", "ISM", "ISA", "IBA", "RCA"));
+
     GoAnnotation handleAnnotation(Annotation a) throws Exception {
 
         GoAnnotation goAnnotation = new GoAnnotation();
@@ -403,14 +426,14 @@ public class Manager {
             return null;
         }
 
-        //GO consortium rule GO:0000026
+        // GORULE:0000026
         if(a.getEvidence().equals("IBA") && !a.getDataSrc().equals("PAINT")) {
             log.debug(a.getTermAcc() +" is an IBA annotation: Annotation skipped");
             counters.increment("ibaAnnot");
             return null;
         }
 
-        //GO consortium rule GO:0000020
+        // GORULE:0000020
         //Check for obsolete terms and filter them
         if(obsoleteTerms.contains(a.getTermAcc())){
             log.debug(a.getTermAcc() +" is an Obsolete Term: Annotation skipped");
@@ -418,7 +441,7 @@ public class Manager {
             return null;
         }
 
-        //GO consortium rule GO:0000010
+        // GORULE:0000010
         //Convert DB reference to RGD|PMID reference if ref_rgd_id is not null
         // ref_rgd_id is null -- use non-null XREF_SOURCE as dbReference
         int refRgdId = a.getRefRgdId()!=null && a.getRefRgdId()>0 ? a.getRefRgdId() : 0;
@@ -439,11 +462,25 @@ public class Manager {
 
         counters.add("rgdIdsInWithInfoReplaced", normalizeWithInfoForISO(goAnnotation, a));
 
-        // GO consortium rule GO:0000002 and GO consortium rule GO:0000003 and GO:000005
-        // "protein binding" annotation -- GO:0005515 -- must have evidence 'IPI' and non-null WITH field
-        //"binding" annotation -- GO:0005488 -- must have evidence 'IPI' and non-null WITH field
-        // "protein binding" annotation -- GO:0005515 - no ISS or ISS-related annotations (if block allows only IPI annotations)
+
+        // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000005.md
+        // IEA, ISS, ISO, ISM, ISA, IBA, RCA annotations are not allowed for direct annotations to protein binding GO:0005515 or GO:0005488 binding
         if( (a.getTermAcc().equals("GO:0005515") || a.getTermAcc().equals("GO:0005488"))) {
+
+            if( GORULE5_EVIDENCELIST.contains(a.getEvidence()) ) {
+                counters.increment("gorule5");
+                return null;
+            }
+        }
+
+
+        // review: GO consortium rule GO:0000002 and GO consortium rule GO:0000003
+        // review: "protein binding" annotation -- GO:0005515 -- must have evidence 'IPI' and non-null WITH field
+        // review: "binding" annotation -- GO:0005488 -- must have evidence 'IPI' and non-null WITH field
+        if( (a.getTermAcc().equals("GO:0005515") || a.getTermAcc().equals("GO:0005488"))) {
+
+            // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000005.md
+            // IEA, ISS, ISO, ISM, ISA, IBA, RCA annotations are not allowed for direct annotations to 'protein binding GO:0005515 or GO:0005488 binding
             if(a.getEvidence().equals("IPI")) {
                 if (goAnnotation.getWithInfo().length() == 0) {
                     counters.increment("ipiAnnot");

@@ -1,3 +1,7 @@
+Nov 11, 2025
+  updated logic for GORULE:0000005
+  implemented multithreaded processing
+
 Aug 04, 2025
   GAF file: REFERENCES field: if there are multiple RGD IDs, only the RGD ID with the highest importance will be used
 
