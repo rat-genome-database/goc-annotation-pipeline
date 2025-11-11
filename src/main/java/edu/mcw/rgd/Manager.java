@@ -162,7 +162,7 @@ public class Manager {
                     result.setTaxon("taxon:" + SpeciesType.getTaxonomicId(speciesTypeKey));
                     synchronized (filteredList) {
                         if( !filteredList.add(result) ) {
-                            log.warn("UNEXPECTED! duplicate annotation!");
+                            //log.warn("UNEXPECTED! duplicate annotation!");
                         }
                     }
                 }
@@ -884,7 +884,7 @@ public class Manager {
 
     void writeGeneAssociationsFile(Collection<GoAnnotation> annotations, String headerLines) throws Exception {
 
-        log.debug("writing file "+getOutputFileRGD()+" ...");
+        log.info("writing "+annotations.size()+" annotations into "+getOutputFileRGD()+" ...");
 
         BufferedWriter bw = Utils.openWriter(getOutputFileRGD());
         bw.write(headerLines);
