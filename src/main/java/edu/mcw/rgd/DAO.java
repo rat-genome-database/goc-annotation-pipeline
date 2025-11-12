@@ -83,7 +83,7 @@ public class DAO {
     }
 
     public Term getTerm(String termAcc ) throws Exception {
-        return odao.getTerm(termAcc);
+        return odao.getTermByAccId(termAcc);
     }
 
     public RgdId getId(int rgdId) throws Exception {

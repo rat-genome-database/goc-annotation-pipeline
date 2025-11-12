@@ -13,14 +13,14 @@ public class SO_Utils {
 
     static Map<String, String> soAccIdToSoName = new HashMap<>();
 
-    public static String getSoName( int rgdId, DAO dao ) throws Exception {
+    public static synchronized String getSoName( int rgdId, DAO dao ) throws Exception {
         Gene gene = dao.getGene(rgdId);
         String soAccId = gene.getSoAccId();
         String soName = getSoName(soAccId, dao);
         return soName;
     }
 
-    public static synchronized String getSoName( String soAcc, DAO dao ) throws Exception {
+    private static String getSoName( String soAcc, DAO dao ) throws Exception {
 
         // according to GAF 2.2 specification for DB Object Type (column 12):
         // protein_complex; protein; transcript; ncRNA; rRNA; tRNA; snRNA; snoRNA; any subtype of ncRNA in So ontology;
@@ -29,7 +29,10 @@ public class SO_Utils {
         String soName = soAccIdToSoName.get(soAcc);
         if( soName==null ) {
             Term t = dao.getTerm(soAcc);
-            if( t.getTerm().equals("protein_coding_gene") ) {
+            if( t == null ) {
+                System.out.println("ERROR: unexpected null term");
+            }
+            else if( t.getTerm().equals("protein_coding_gene") ) {
                 soName = "protein";
             } else {
                 if( t.getTerm().endsWith("_gene") ) {
