@@ -419,10 +419,6 @@ public class Manager {
             return null;
         }
 
-if( a.getAnnotatedObjectRgdId()==11384727 && a.getTermAcc().equals("GO:0005886") && a.getDataSrc().equals("RGD") ) {
-    System.out.println("test");
-}
-
         //GORules:
         if( !qcQualifier(a) ) {
             return null;
@@ -818,7 +814,7 @@ if( a.getAnnotatedObjectRgdId()==11384727 && a.getTermAcc().equals("GO:0005886")
         }
 
         if( refs.size()>2 ) {
-            System.out.println("WARNING! unexpected count of references: "+Utils.concatenate(refs, "|"));
+            log.warn("WARNING! unexpected count of references: "+Utils.concatenate(refs, "|"));
         }
     }
 
