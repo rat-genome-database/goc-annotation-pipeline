@@ -1,3 +1,6 @@
+Nov 17, 2025
+  improved handling of WITH_INFO field
+
 Nov 11, 2025
   updated logic for GORULE:0000005
   implemented multithreaded processing
