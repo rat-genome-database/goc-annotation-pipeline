@@ -419,7 +419,9 @@ public class Manager {
             return null;
         }
 
-
+if( a.getAnnotatedObjectRgdId()==11384727 && a.getTermAcc().equals("GO:0005886") && a.getDataSrc().equals("RGD") ) {
+    System.out.println("test");
+}
 
         //GORules:
         if( !qcQualifier(a) ) {
@@ -828,6 +830,7 @@ public class Manager {
         }
 
         int replacedIds = 0;
+        String newWithInfo = null;
 
         // process all RGD IDs
         String[] objIds = rec.getWithInfo().split("[\\|\\,]");
@@ -849,7 +852,7 @@ public class Manager {
                     logWarning("  WARNING: multiple MGI IDs for RGD:"+rgdId);
                 } else {
                     String mgiId = xdbIds.get(0).getAccId();
-                    rec.setWithInfo( rec.getWithInfo().replace(objId, mgiId));
+                    newWithInfo = rec.getWithInfo().replace(objId, mgiId);
                     replacedIds++;
                 }
             }
@@ -877,7 +880,7 @@ public class Manager {
 
                 if( uniprotId!=null ) {
                     String accId = "UniProtKB:"+uniprotId.getAccId();
-                    rec.setWithInfo( rec.getWithInfo().replace(objId, accId));
+                    newWithInfo = rec.getWithInfo().replace(objId, accId);
                     replacedIds++;
                 }
             }
@@ -885,6 +888,16 @@ public class Manager {
                 logWarning("   WARNING: unexpected species type for RGD:"+rgdId);
                 counters.increment("rgdIdsInWithInfoUnexpectedSpecies");
             }
+        }
+
+        if( newWithInfo!=null ) {
+
+            // get rid of duplicates
+            TreeSet<String> ids = new TreeSet<>();
+            for( String id: newWithInfo.split("[\\|\\,]") ) {
+                ids.add(id);
+            }
+            rec.setWithInfo( Utils.concatenate(ids, "|"));
         }
 
         return replacedIds;
