@@ -671,18 +671,21 @@ public class Manager {
         // it could be empty, or '|'-separated; one of [DB:gene_symbol, DB:gene_id, DB:protein_name, DB:sequence_id, GO:GO_id, CHEBI:CHEBI_id]
         // LOGIC: we ensure, that all '|'-separated parts have ':'-separated parts, if not, we supply 'RGD:'
         String[] parts = withInfo.split("[\\|\\,]");
-        for( int i=0; i<parts.length; i++ ) {
-            if( parts[i].indexOf(':')<0 ) {
-                parts[i] = "RGD:"+parts[i].trim();
+        Set<String> withIds = new TreeSet<>();
+        for( String part: parts ) {
+            if( part.indexOf(':')<0 ) {
+                part = "RGD:"+part.trim();
                 log.warn("*** WARNING! unexpected with_info ["+withInfo+"] for RGD:"+a.getAnnotatedObjectRgdId()+", "+a.getEvidence()+", "+a.getTermAcc());
             }
 
             // convert ensembl:xxx into ENSEMBL:xxx
-            if( parts[i].startsWith("ensembl") ) {
-                parts[i] = parts[i].toUpperCase();
+            else if( part.startsWith("ensembl") ) {
+                part = part.toUpperCase();
             }
+
+            withIds.add(part);
         }
-        return Utils.concatenate(parts, "|");
+        return Utils.concatenate(withIds, "|");
     }
 
     private boolean qcQualifier(Annotation a) {
