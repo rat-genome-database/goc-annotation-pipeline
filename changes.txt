@@ -1,3 +1,8 @@
+Nov 17, 2025
+  updated logic for GORULE:0000027
+  ensembl:xxx ids are now written as 'ENSEMBL:xxx', for full conformance with GO_RULE:0000027
+    apparently, 'ensembl' db listed in goa xrefs as synonym, is not good enough as the actual db name 'ENSEMBL'
+
 Nov 11, 2025
   updated logic for GORULE:0000005
   implemented multithreaded processing

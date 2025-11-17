@@ -676,6 +676,11 @@ public class Manager {
                 parts[i] = "RGD:"+parts[i].trim();
                 log.warn("*** WARNING! unexpected with_info ["+withInfo+"] for RGD:"+a.getAnnotatedObjectRgdId()+", "+a.getEvidence()+", "+a.getTermAcc());
             }
+
+            // convert ensembl:xxx into ENSEMBL:xxx
+            if( parts[i].startsWith("ensembl") ) {
+                parts[i] = parts[i].toUpperCase();
+            }
         }
         return Utils.concatenate(parts, "|");
     }
