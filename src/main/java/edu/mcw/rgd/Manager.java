@@ -300,6 +300,14 @@ public class Manager {
         if( ieaDateAsIs!=0 ) {
             log.info("IEA annotations with CREATED_DATE left as-is: " + ieaDateAsIs);
         }
+        int evidenceIsoToIea = counters.get("evidenceIsoToIea");
+        int evidenceIssToIea = counters.get("evidenceIssToIea");
+        if( evidenceIsoToIea!=0 ) {
+            log.info("ISO evidence codes converted to IEA at write time: " + evidenceIsoToIea);
+        }
+        if( evidenceIssToIea!=0 ) {
+            log.info("ISS evidence codes converted to IEA at write time: " + evidenceIssToIea);
+        }
     }
 
     // load annotations, ordered by (RGD_ID,TERM_ACC)
@@ -937,7 +945,7 @@ public class Manager {
                 .append('\t')
                 .append(checkNull(rec.getReferences()))
                 .append('\t')
-                .append(checkNull(rec.getEvidence()))
+                .append(convertEvidence(rec.getEvidence()))
                 .append('\t')
                 .append(checkNull(rec.getWithInfo()))
                 .append('\t')
@@ -959,6 +967,18 @@ public class Manager {
                 .append('\t')
                 .append(checkNull(rec.getGeneProductId()))
                 .append('\n');
+    }
+
+    String convertEvidence(String evidence) {
+        if( "ISO".equals(evidence) ) {
+            counters.increment("evidenceIsoToIea");
+            return "IEA";
+        }
+        if( "ISS".equals(evidence) ) {
+            counters.increment("evidenceIssToIea");
+            return "IEA";
+        }
+        return checkNull(evidence);
     }
 
     /** the generated file size cannot differ in size more than 5% compared to the last 3 archived files

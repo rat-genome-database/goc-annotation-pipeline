@@ -1,3 +1,7 @@
+Feb 24, 2026
+  GAF file: ISO and ISS evidence codes converted to IEA at write time
+
+
 Nov 17, 2025
   improved handling of WITH_INFO field
 
