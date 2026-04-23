@@ -945,7 +945,7 @@ public class Manager {
                 .append('\t')
                 .append(checkNull(rec.getReferences()))
                 .append('\t')
-                .append(convertEvidence(rec.getEvidence()))
+                .append(checkNull(rec.getEvidence())) // TEMPORARILY DISABLED 2026-04-23: restore convertEvidence(...) to re-enable ISO/ISS -> IEA conversion
                 .append('\t')
                 .append(checkNull(rec.getWithInfo()))
                 .append('\t')
