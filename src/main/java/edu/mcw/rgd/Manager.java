@@ -180,44 +180,44 @@ public class Manager {
         //SO_Utils.dumpUnexpectedSoAccIds(dao);
 
         if( new File(getGoaFile()).exists() ) {
-            BufferedReader br = Utils.openReader(getGoaFile());
-            String line;
-            while (null != (line = br.readLine())) {
+            try( BufferedReader br = Utils.openReader(getGoaFile()) ) {
+                String line;
+                while (null != (line = br.readLine())) {
 
-                GoAnnotation goAnnotation = new GoAnnotation();
-                String[] tokens = line.split("[\\t]", -1);
-                if (tokens.length != 17) {
-                    continue;
-                }
-                goAnnotation.setObjectId(tokens[1]);
-                goAnnotation.setObjectSymbol(tokens[2]);
-                goAnnotation.setQualifier(tokens[3]);
-                goAnnotation.setTermAcc(tokens[4]);
-                goAnnotation.setReferences(tokens[5]);
-                goAnnotation.setEvidence(tokens[6]);
-                goAnnotation.setWithInfo(tokens[7]);
-                goAnnotation.setAspect(tokens[8]);
-                goAnnotation.setObjectName(tokens[9]);
-                goAnnotation.setMeshOrOmimId(tokens[10]);
-                goAnnotation.setObjectType(tokens[11]);
-                goAnnotation.setTaxon(tokens[12]);
-                goAnnotation.setCreatedDate(tokens[13]);
-                goAnnotation.setDataSrc(tokens[14]);
-                goAnnotation.setAnnotExtension(tokens[15]);
-                goAnnotation.setGeneProductId(tokens[16]);
+                    GoAnnotation goAnnotation = new GoAnnotation();
+                    String[] tokens = line.split("[\\t]", -1);
+                    if (tokens.length != 17) {
+                        continue;
+                    }
+                    goAnnotation.setObjectId(tokens[1]);
+                    goAnnotation.setObjectSymbol(tokens[2]);
+                    goAnnotation.setQualifier(tokens[3]);
+                    goAnnotation.setTermAcc(tokens[4]);
+                    goAnnotation.setReferences(tokens[5]);
+                    goAnnotation.setEvidence(tokens[6]);
+                    goAnnotation.setWithInfo(tokens[7]);
+                    goAnnotation.setAspect(tokens[8]);
+                    goAnnotation.setObjectName(tokens[9]);
+                    goAnnotation.setMeshOrOmimId(tokens[10]);
+                    goAnnotation.setObjectType(tokens[11]);
+                    goAnnotation.setTaxon(tokens[12]);
+                    goAnnotation.setCreatedDate(tokens[13]);
+                    goAnnotation.setDataSrc(tokens[14]);
+                    goAnnotation.setAnnotExtension(tokens[15]);
+                    goAnnotation.setGeneProductId(tokens[16]);
 
-                // the goa file processed here is from UniProt
-                // and for all rows the object type is 'protein' and that is conformant with GAF 2.2 spec
-                //String soName = SO_Utils.getSoName(Integer.parseInt(goAnnotation.getObjectId()), dao);
-                //goAnnotation.setObjectType(soName);
+                    // the goa file processed here is from UniProt
+                    // and for all rows the object type is 'protein' and that is conformant with GAF 2.2 spec
+                    //String soName = SO_Utils.getSoName(Integer.parseInt(goAnnotation.getObjectId()), dao);
+                    //goAnnotation.setObjectType(soName);
 
-                filteredList.add(goAnnotation);
+                    filteredList.add(goAnnotation);
 
-                if( Utils.isStringEmpty(goAnnotation.getCreatedDate()) ) {
-                    throw new Exception("EMPTY CREATED DATE: "+line);
+                    if( Utils.isStringEmpty(goAnnotation.getCreatedDate()) ) {
+                        throw new Exception("EMPTY CREATED DATE: "+line);
+                    }
                 }
             }
-            br.close();
         } else {
             log.warn("   WARNING: failed to find file "+getGoaFile());
         }

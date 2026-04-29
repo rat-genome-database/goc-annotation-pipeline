@@ -1,3 +1,6 @@
+Apr 29, 2026
+  bug fix: BufferedReader leak when reading the GOA file
+
 Apr 23, 2026
   temporarily disabled ISO/ISS -> IEA conversion; updated dependencies
 
