@@ -358,6 +358,10 @@ public class Manager {
             }
             deconsolidatedAnnotsIncoming++;
 
+            if( a.getNotes()==null ) {
+                log.warn("WARNING! CANNOT DECONSOLIDATE ANNOTATION! SKIPPING IT: notes info missing (null)");
+                continue;
+            }
             int parPos = a.getNotes().indexOf("(");
             if( parPos<0 ) {
                 log.warn("WARNING! CANNOT DECONSOLIDATE ANNOTATION! SKIPPING IT: notes info missing");
@@ -531,8 +535,8 @@ public class Manager {
         // The No Data (ND) evidence code should be used for annotations to the root nodes only
 
         // CASE 1: evidence.code = 'ND' AND term.acc NOT IN ( 'GO:0005575', 'GO:0003674', 'GO:0008150' )
-        if( a.getEvidence().equals("ND") && a.getTerm().startsWith("GO:")
-                && !(a.getTerm().equals("GO:0005575") || a.getTerm().equals("GO:0003674") || a.getTerm().equals("GO:0008150")) ) {
+        if( a.getEvidence().equals("ND") && a.getTermAcc().startsWith("GO:")
+                && !(a.getTermAcc().equals("GO:0005575") || a.getTermAcc().equals("GO:0003674") || a.getTermAcc().equals("GO:0008150")) ) {
             log.info(a.getTermAcc() +" is an ND annotation. Fails rule GO:0000011");
             counters.increment("ndAnnotations");
             return null;
@@ -540,7 +544,7 @@ public class Manager {
 
         // CASE 2: evidence.code != 'ND' AND term.acc IN ( 'GO:0005575', 'GO:0003674', 'GO:0008150' )
         if( !a.getEvidence().equals("ND")
-                && (a.getTerm().equals("GO:0005575") || a.getTerm().equals("GO:0003674") || a.getTerm().equals("GO:0008150")) ) {
+                && (a.getTermAcc().equals("GO:0005575") || a.getTermAcc().equals("GO:0003674") || a.getTermAcc().equals("GO:0008150")) ) {
             log.info(a.getTermAcc() +" is not an ND annotation.Fails rule GO:0000011");
             counters.increment("ndAnnotations");
             return null;
@@ -549,7 +553,7 @@ public class Manager {
         // CASE 3: evidence.code = 'ND' AND term.acc IN ( 'GO:0005575', 'GO:0003674', 'GO:0008150' )
         // and xref_db NOT IN( 'GO_REF:0000015', 'RGD:1598407')
         if( a.getEvidence().equals("ND")
-                && (a.getTerm().equals("GO:0005575") || a.getTerm().equals("GO:0003674") || a.getTerm().equals("GO:0008150")) ) {
+                && (a.getTermAcc().equals("GO:0005575") || a.getTermAcc().equals("GO:0003674") || a.getTermAcc().equals("GO:0008150")) ) {
 
             if( !goAnnotation.getReferences().equals("GO_REF:0000015") && !goAnnotation.getReferences().equals("RGD:1598407") ) {
                 goAnnotation.setReferences("GO_REF:0000015");
