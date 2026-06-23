@@ -1,3 +1,6 @@
+Jun 22, 2026
+  GORULE:0000006: never emit IEP/HEP annotations to non-Biological-Process terms into the GAF (incl. the UniProt-GOA merge); count reported and entries logged to suppressed.log
+
 Jun 8, 2026
   bug fix: GORULE:0000011 (ND evidence) now compares term accession instead of term name; guard against NPE on null notes during deconsolidation; updated dependencies
 

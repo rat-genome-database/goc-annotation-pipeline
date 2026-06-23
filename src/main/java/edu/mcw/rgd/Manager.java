@@ -80,6 +80,7 @@ public class Manager {
     Logger log = LogManager.getLogger("core");
     Logger logWarnings = LogManager.getLogger("warnings");
     Logger logRejected = LogManager.getLogger("rejected_annots");
+    Logger logSuppressed = LogManager.getLogger("suppressed");
 
     public static void main(String[] args) throws Exception {
 
@@ -237,7 +238,7 @@ public class Manager {
         int obsolete = counters.get("obsolete");
         int notForCuration = counters.get("notForCuration");
         int notGene = counters.get("notGene");
-        int iepHep = counters.get("iepHep");
+        int gorule6 = counters.get("gorule6");
         int ndAnnotations = counters.get("ndAnnotations");
         int ipiInCatalytic = counters.get("ipiInCatalytic");
         int icWithoutWith = counters.get("icWithoutWith");
@@ -262,7 +263,7 @@ public class Manager {
         log.info(" Annotations to Obsolete terms: " + obsolete );
         log.info(" NotForCuration Annotations: " + notForCuration );
         log.info(" Not gene Annotations: " + notGene );
-        log.info("*** IEP and HEP Annotations to MF and CC Ontology (rejected): " + iepHep );
+        log.info("GORULE:0000006 violations (IEP/HEP to non-BP) suppressed from GAF: " + gorule6 + " (see logs/suppressed.log)");
         log.info("No Data (ND) evidence code Annotations: " + ndAnnotations );
         log.info("IPI Annotations to Catalytic Terms: " + ipiInCatalytic );
         if( gorule5!=0 ) {
@@ -416,6 +417,11 @@ public class Manager {
     // IEA, ISS, ISO, ISM, ISA, IBA, RCA annotations are not allowed for direct annotations to 'protein binding GO:0005515 or GO:0005488 binding
     final static Set<String> GORULE5_EVIDENCELIST = new HashSet<>(Arrays.asList("IEA", "ISS", "ISO", "ISM", "ISA", "IBA", "RCA"));
 
+    // GORULE:0000006 - IEP/HEP evidence codes are restricted to the Biological Process ('P') ontology
+    static boolean isGoRule6Violation(String evidence, String aspect) {
+        return ("IEP".equals(evidence) || "HEP".equals(evidence)) && !"P".equals(aspect);
+    }
+
     GoAnnotation handleAnnotation(Annotation a) throws Exception {
 
         GoAnnotation goAnnotation = new GoAnnotation();
@@ -505,10 +511,11 @@ public class Manager {
         // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000006.md
         // IEP and HEP annotations are restricted to terms from Biological Process ontology
         // (reviewed on Dec 12, 2022)
-        if((a.getEvidence().equals("IEP") || a.getEvidence().equals("HEP")) && !a.getAspect().equals("P")) {
-            logRejected.debug("GORULE:0000006> "+a.getEvidence()+ " annotation skipped -- IEP/HEP annotations are restricted to Biological Process ontology"
-                +"\n   "+a.dump("|"));
-            counters.increment("iepHep");
+        if( isGoRule6Violation(a.getEvidence(), a.getAspect()) ) {
+            counters.increment("gorule6");
+            logSuppressed.info(a.getAnnotatedObjectRgdId()+"\t\t"+checkNull(a.getTermAcc())
+                    +"\t"+checkNull(a.getEvidence())+"\t"+checkNull(a.getAspect())+"\t"+checkNull(a.getDataSrc())
+                    +"\tGORULE:0000006 IEP/HEP restricted to Biological Process");
             return null;
         }
 
@@ -931,6 +938,17 @@ public class Manager {
     }
 
     void writeLine(BufferedWriter writer, GoAnnotation rec) throws Exception{
+
+        // GORULE:0000006 - IEP/HEP annotations are restricted to the Biological Process ontology.
+        // Hard guard at the single emission point so violators are never written to the GAF,
+        // regardless of source (RGD db annotations or the merged UniProt-GOA file).
+        if( isGoRule6Violation(rec.getEvidence(), rec.getAspect()) ) {
+            counters.increment("gorule6");
+            logSuppressed.info(rec.getObjectId()+"\t"+checkNull(rec.getObjectSymbol())+"\t"+checkNull(rec.getTermAcc())
+                    +"\t"+checkNull(rec.getEvidence())+"\t"+checkNull(rec.getAspect())+"\t"+checkNull(rec.getDataSrc())
+                    +"\tGORULE:0000006 IEP/HEP restricted to Biological Process");
+            return;
+        }
 
         if( Utils.isStringEmpty(rec.getCreatedDate()) ) {
             throw new Exception("EMPTY CREATED DATE");
