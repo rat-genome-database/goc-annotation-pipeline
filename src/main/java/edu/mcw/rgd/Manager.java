@@ -81,6 +81,7 @@ public class Manager {
     Logger logWarnings = LogManager.getLogger("warnings");
     Logger logRejected = LogManager.getLogger("rejected_annots");
     Logger logSuppressed = LogManager.getLogger("suppressed");
+    Logger logGoRule17 = LogManager.getLogger("gorule17");
 
     public static void main(String[] args) throws Exception {
 
@@ -129,6 +130,9 @@ public class Manager {
 
 
         pmidMap = dao.loadPmidMap();
+
+        logGoRule17.info("FULL_ANNOT_KEY\tRGD_ID\tSYMBOL\tTERM_ACC\tEVIDENCE\tWITH_INFO\tDATA_SRC\tREF_RGD_ID\tNOTE");
+
         handleGO(species, speciesTypeKey, multithreaded);
 
         dumpWarnings();
@@ -270,7 +274,8 @@ public class Manager {
             log.info("GORULE:0000005 violations: IEA, ISS, ISO, ISM, ISA, IBA, RCA annotations are not allowed for direct annotations to protein binding GO:0005515 or GO:0005488 binding:" + gorule5);
         }
         log.info("GORULE:0000016 violations: IC annotations must have a WITH field:" + icWithoutWith );
-        log.info("GORULE:0000017 violations: IDA annotations must not have WITH field: " + idaWithWith );
+        log.info("GORULE:0000017 violations: IDA annotations with a WITH field: " + idaWithWith
+                + " (WITH stripped from GAF, annotations kept; see logs/gorule17.log)");
         log.info("GORULE:0000018 violations: IPI annotations must have a WITH field:" + ipiWithoutWith );
         log.info("IBA annotations from other sources: "+ ibaAnnot );
         log.info("IPI annotations to root terms with null WITH field: " + ipiAnnot  );
@@ -422,6 +427,12 @@ public class Manager {
         return ("IEP".equals(evidence) || "HEP".equals(evidence)) && !"P".equals(aspect);
     }
 
+    // GORULE:0000017 - IDA annotations must not have a With/From entry
+    // (GAF 2.2: WITH cardinality must be 0 for IDA; the same holds for TAS, NAS and ND)
+    static boolean isGoRule17Violation(String evidence, String withInfo) {
+        return "IDA".equals(evidence) && withInfo != null && !withInfo.trim().isEmpty();
+    }
+
     GoAnnotation handleAnnotation(Annotation a) throws Exception {
 
         GoAnnotation goAnnotation = new GoAnnotation();
@@ -470,6 +481,21 @@ public class Manager {
         } else {
             if(a.getXrefSource() != null )
                 goAnnotation.setReferences(a.getXrefSource());
+        }
+
+        // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000017.md
+        // GORULE:0000017: IDA annotations must not have a With/From entry.
+        // This must run BEFORE validateWithInfo(), which blanks WITH for IDA/NAS/ND/TAS;
+        // the previous check ran after the blanking and could never fire.
+        // The annotation is valid once WITH is removed, so it stays in the GAF (GO treats the rule
+        // as 'report'); the violation is counted and logged so the FULL_ANNOT row can be fixed
+        // (f.e. self-binding terms must be IPI with the gene's own RGD ID in WITH).
+        if( isGoRule17Violation(a.getEvidence(), a.getWithInfo()) ) {
+            counters.increment("idaWithWith");
+            logGoRule17.info(a.getKey()+"\t"+a.getAnnotatedObjectRgdId()+"\t"+checkNull(a.getObjectSymbol())
+                    +"\t"+checkNull(a.getTermAcc())+"\t"+checkNull(a.getEvidence())+"\t"+checkNull(a.getWithInfo())
+                    +"\t"+checkNull(a.getDataSrc())+"\t"+(a.getRefRgdId()==null ? "" : "RGD:"+a.getRefRgdId())
+                    +"\tWITH stripped from GAF; if a binding partner is known, use IPI");
         }
 
         // check for Pub Med id in this field, if it exists tack it on to the dbReference field
@@ -575,13 +601,8 @@ public class Manager {
             return null;
         }
 
-        // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000017.md
-        // IDA annotations must not have a With/From entry; When there is an appropriate ID for the "With/From" column, use IPI.
-        if( a.getEvidence().equals("IDA") && goAnnotation.getWithInfo().length()!=0 ) {
-            log.info("Annot to RGD:"+a.getAnnotatedObjectRgdId()+", "+a.getTermAcc() + ", SRC="+a.getDataSrc()+" failed GORULE:0000017: IDA annotations must not have a With/From entry; use IPI code instead");
-            counters.increment("idaWithWith");
-            return null;
-        }
+        // GORULE:0000017 (IDA annotations must not have a With/From entry) is checked above,
+        // before validateWithInfo() blanks the WITH field
 
         // https://github.com/geneontology/go-site/blob/master/metadata/rules/gorule-0000018.md
         // IPI annotations require a With/From entry
@@ -948,6 +969,17 @@ public class Manager {
                     +"\t"+checkNull(rec.getEvidence())+"\t"+checkNull(rec.getAspect())+"\t"+checkNull(rec.getDataSrc())
                     +"\tGORULE:0000006 IEP/HEP restricted to Biological Process");
             return;
+        }
+
+        // GORULE:0000017 - guard at the single emission point, regardless of source:
+        // IDA rows must never carry a WITH value. Db annotations never reach this point with WITH set
+        // (validateWithInfo blanks it), so this only affects rows merged from the UniProt-GOA file.
+        if( isGoRule17Violation(rec.getEvidence(), rec.getWithInfo()) ) {
+            counters.increment("idaWithWith");
+            logGoRule17.info("\t"+rec.getObjectId()+"\t"+checkNull(rec.getObjectSymbol())+"\t"+checkNull(rec.getTermAcc())
+                    +"\t"+checkNull(rec.getEvidence())+"\t"+checkNull(rec.getWithInfo())+"\t"+checkNull(rec.getDataSrc())
+                    +"\t\tWITH stripped at write time (GOA merge path)");
+            rec.setWithInfo("");
         }
 
         if( Utils.isStringEmpty(rec.getCreatedDate()) ) {

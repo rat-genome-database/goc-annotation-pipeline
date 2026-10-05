@@ -1,3 +1,6 @@
+Oct 5, 2026
+  GORULE:0000017: IDA annotations with a WITH field are now detected before WITH is stripped (the old check was unreachable); count reported and entries logged to gorule17.log; updated dependencies
+
 Jun 22, 2026
   GORULE:0000006: never emit IEP/HEP annotations to non-Biological-Process terms into the GAF (incl. the UniProt-GOA merge); count reported and entries logged to suppressed.log
 

@@ -39,6 +39,11 @@
         <File name="suppressed" append="false" fileName="logs/suppressed.log">
             <PatternLayout pattern="%m%n"/>
         </File>
+
+        <!-- GORULE:0000017 violations: IDA annotations carrying a WITH value (WITH stripped from the GAF; overwritten each run) -->
+        <File name="gorule17" append="false" fileName="logs/gorule17.log">
+            <PatternLayout pattern="%m%n"/>
+        </File>
     </Appenders>
 
     <Loggers>
@@ -64,6 +69,10 @@
 
         <Logger name="suppressed" level="debug" additivity="false">
             <AppenderRef ref="suppressed"/>
+        </Logger>
+
+        <Logger name="gorule17" level="debug" additivity="false">
+            <AppenderRef ref="gorule17"/>
         </Logger>
     </Loggers>
 </Configuration>
